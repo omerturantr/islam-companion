@@ -287,7 +287,33 @@ app.get('/api/debug/env', (req, res) => {
 });
 
 app.get('/api/awqat/countries', async (req, res) => {
-  await handleProxy(res, 'countries', '/api/Place/Countries');
+  try {
+    const response = await fetchWithAuth('/api/Place/Countries', { method: 'GET' });
+    const { text, json } = await readUpstreamBody(response);
+    if (!response.ok) {
+      console.error('COUNTRIES_ERROR:', `Upstream ${response.status}`);
+      console.error('COUNTRIES_UPSTREAM_STATUS:', response.status);
+      console.error('COUNTRIES_UPSTREAM_BODY:', safeExcerpt(json ?? text));
+      return res.status(502).json({
+        error: 'Failed to fetch countries',
+        upstreamStatus: response.status,
+        upstreamError: safeExcerpt(json ?? text),
+      });
+    }
+    return res.json(json ?? {});
+  } catch (err) {
+    console.error('COUNTRIES_ERROR:', err?.message || err);
+    if (err?.response) {
+      console.error('COUNTRIES_UPSTREAM_STATUS:', err.response.status);
+      console.error('COUNTRIES_UPSTREAM_BODY:', safeExcerpt(err.response.data));
+      return res.status(502).json({
+        error: 'Failed to fetch countries',
+        upstreamStatus: err.response.status,
+        upstreamError: safeExcerpt(err.response.data),
+      });
+    }
+    return res.status(502).json({ error: 'Failed to fetch countries' });
+  }
 });
 
 app.get('/api/awqat/states', async (req, res) => {
