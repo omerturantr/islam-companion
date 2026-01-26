@@ -20,7 +20,7 @@ An Expo React Native app focused on prayer times, Quran reading, Qibla, and dail
    `npm run start`
 
 ## Environment
-If you use environment variables, add them to a local `.env` file (ignored by git).
+Copy `.env.example` to `.env` and fill in values. The `.env` file is ignored by git.
 
 ## Scripts
 - `npm run start`

@@ -36,7 +36,6 @@ const POST_PRAYER_MESSAGE = 'Have you read Huwallahüllezi?';
 const SCHEDULE_DAYS = 7;
 const PRAYER_REMINDER_CHANNEL = 'prayer-reminders';
 const PRAYER_ADHAN_CHANNEL = 'prayer-adhan';
-const ADHAN_SOUND = Platform.OS === 'android' ? 'adhan' : 'adhan.wav';
 const LOCATION_STORAGE_KEY = 'settings:location';
 
 const LOCATION_ERROR = 'Unable to get your location.';
@@ -118,7 +117,7 @@ const schedulePrayerNotifications = async (
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 400, 300, 400],
         lightColor: accentColor,
-        sound: ADHAN_SOUND,
+        sound: 'default',
       },
     );
   }
@@ -165,7 +164,7 @@ const schedulePrayerNotifications = async (
         content: {
           title: `${entry.label} time`,
           body: `It is time for ${entry.label}.`,
-          sound: ADHAN_SOUND,
+          sound: 'default',
           channelId: PRAYER_ADHAN_CHANNEL,
         },
         trigger: entry.time,
