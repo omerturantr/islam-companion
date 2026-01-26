@@ -27,3 +27,8 @@ Copy `.env.example` to `.env` and fill in values. The `.env` file is ignored by 
 - `npm run android`
 - `npm run ios`
 - `npm run web`
+
+## Awqat Salah Backend (Render)
+There is a backend proxy for the Diyanet Awqat Salah API in `server/`.
+It keeps credentials server-side and exposes safe endpoints for the app.
+See `server/README.md` for setup and Render deployment.
