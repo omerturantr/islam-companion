@@ -17,6 +17,16 @@ if (!ALLOWED_ORIGIN) {
 
 const app = express();
 app.use(express.json());
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const durationMs = Date.now() - start;
+    console.log(
+      `${req.method} ${req.originalUrl} ${res.statusCode} ${durationMs}ms`,
+    );
+  });
+  next();
+});
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -32,6 +42,17 @@ app.use(
 );
 
 const cache = new Map();
+
+const safeExcerpt = (value, limit = 500) => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  const text = typeof value === 'string' ? value : JSON.stringify(value);
+  if (text.length <= limit) {
+    return text;
+  }
+  return `${text.slice(0, limit)}...`;
+};
 
 const getCache = (key) => {
   const entry = cache.get(key);
@@ -184,6 +205,39 @@ const fetchWithAuth = async (path, options = {}) => {
   });
 };
 
+const readUpstreamBody = async (response) => {
+  const text = await response.text();
+  if (!text) {
+    return { text: '', json: null };
+  }
+  try {
+    return { text, json: JSON.parse(text) };
+  } catch (err) {
+    return { text, json: null };
+  }
+};
+
+const logUpstreamFailure = (label, status, bodyText, bodyJson) => {
+  console.error(
+    `[upstream:${label}] status=${status} body=${safeExcerpt(
+      bodyJson ?? bodyText,
+    )}`,
+  );
+};
+
+const fetchUpstreamJson = async (label, path) => {
+  const response = await fetchWithAuth(path, { method: 'GET' });
+  const { text, json } = await readUpstreamBody(response);
+  if (!response.ok) {
+    logUpstreamFailure(label, response.status, text, json);
+    const error = new Error(`${label} failed (${response.status})`);
+    error.upstreamStatus = response.status;
+    error.upstreamError = json ?? text;
+    throw error;
+  }
+  return json ?? {};
+};
+
 const withCache = async (key, ttlMs, fetcher) => {
   const cached = getCache(key);
   if (cached) {
@@ -203,38 +257,57 @@ const ensureParam = (req, res, name) => {
   return value;
 };
 
-const handleProxy = async (req, res, path) => {
-  const response = await fetchWithAuth(path, { method: 'GET' });
-  const json = await response.json();
-  res.status(response.status).json(json);
+const handleProxy = async (res, label, path) => {
+  try {
+    const data = await fetchUpstreamJson(label, path);
+    res.json(data);
+  } catch (err) {
+    console.error(`[proxy:${label}] ${err.message}`);
+    const payload = { error: `Failed to fetch ${label}` };
+    if (err.upstreamStatus) {
+      payload.upstreamStatus = err.upstreamStatus;
+    }
+    if (err.upstreamError) {
+      payload.upstreamError = safeExcerpt(err.upstreamError);
+    }
+    res.status(502).json(payload);
+  }
 };
 
+app.get('/', (req, res) => {
+  res.json({ ok: true, service: 'awqat-proxy', ts: new Date().toISOString() });
+});
+
+app.get('/api/debug/env', (req, res) => {
+  res.json({
+    hasEmail: Boolean(EMAIL),
+    hasPassword: Boolean(PASSWORD),
+    allowedOriginSet: Boolean(ALLOWED_ORIGIN),
+  });
+});
+
 app.get('/api/awqat/countries', async (req, res) => {
-  try {
-    await handleProxy(req, res, '/api/Place/Countries');
-  } catch (err) {
-    res.status(502).json({ error: 'Failed to fetch countries' });
-  }
+  await handleProxy(res, 'countries', '/api/Place/Countries');
 });
 
 app.get('/api/awqat/states', async (req, res) => {
   const countryId = ensureParam(req, res, 'countryId');
   if (!countryId) return;
-  try {
-    await handleProxy(req, res, `/api/Place/States/${encodeURIComponent(countryId)}`);
-  } catch (err) {
-    res.status(502).json({ error: 'Failed to fetch states' });
-  }
+  await handleProxy(
+    res,
+    'states',
+    `/api/Place/States/${encodeURIComponent(countryId)}`,
+  );
 });
 
 app.get('/api/awqat/cities', async (req, res) => {
   const stateId = ensureParam(req, res, 'stateId');
   if (!stateId) return;
-  try {
-    await handleProxy(req, res, `/api/Place/Cities/${encodeURIComponent(stateId)}`);
-  } catch (err) {
-    res.status(502).json({ error: 'Failed to fetch cities' });
-  }
+  await handleProxy(
+    res,
+    'cities',
+    `/api/Place/Cities/${encodeURIComponent(stateId)}`,
+  );
 });
 
 app.get('/api/awqat/daily', async (req, res) => {
@@ -243,16 +316,23 @@ app.get('/api/awqat/daily', async (req, res) => {
   const key = `daily:${cityId}:${new Date().toISOString().slice(0, 10)}`;
   const ttlMs = Math.max(10, Math.min(30, DAILY_TTL_MIN)) * 60 * 1000;
   try {
-    const data = await withCache(key, ttlMs, async () => {
-      const response = await fetchWithAuth(
+    const data = await withCache(key, ttlMs, async () =>
+      fetchUpstreamJson(
+        'daily',
         `/api/PrayerTime/Daily/${encodeURIComponent(cityId)}`,
-        { method: 'GET' },
-      );
-      return response.json();
-    });
+      ),
+    );
     res.json(data);
   } catch (err) {
-    res.status(502).json({ error: 'Failed to fetch daily prayer times' });
+    console.error(`[proxy:daily] ${err.message}`);
+    const payload = { error: 'Failed to fetch daily prayer times' };
+    if (err.upstreamStatus) {
+      payload.upstreamStatus = err.upstreamStatus;
+    }
+    if (err.upstreamError) {
+      payload.upstreamError = safeExcerpt(err.upstreamError);
+    }
+    res.status(502).json(payload);
   }
 });
 
@@ -262,16 +342,23 @@ app.get('/api/awqat/monthly', async (req, res) => {
   const key = `monthly:${cityId}:${new Date().toISOString().slice(0, 7)}`;
   const ttlMs = Math.max(6, Math.min(24, MONTHLY_TTL_HOURS)) * 60 * 60 * 1000;
   try {
-    const data = await withCache(key, ttlMs, async () => {
-      const response = await fetchWithAuth(
+    const data = await withCache(key, ttlMs, async () =>
+      fetchUpstreamJson(
+        'monthly',
         `/api/PrayerTime/Monthly/${encodeURIComponent(cityId)}`,
-        { method: 'GET' },
-      );
-      return response.json();
-    });
+      ),
+    );
     res.json(data);
   } catch (err) {
-    res.status(502).json({ error: 'Failed to fetch monthly prayer times' });
+    console.error(`[proxy:monthly] ${err.message}`);
+    const payload = { error: 'Failed to fetch monthly prayer times' };
+    if (err.upstreamStatus) {
+      payload.upstreamStatus = err.upstreamStatus;
+    }
+    if (err.upstreamError) {
+      payload.upstreamError = safeExcerpt(err.upstreamError);
+    }
+    res.status(502).json(payload);
   }
 });
 

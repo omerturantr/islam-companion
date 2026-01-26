@@ -47,3 +47,16 @@ curl "http://localhost:3001/api/awqat/monthly?cityId=9541"
    - `AWQAT_BASE_URL` (optional)
    - `DAILY_TTL_MIN` (optional)
    - `MONTHLY_TTL_HOURS` (optional)
+
+## Acceptance Tests
+1) `GET /` returns:
+   ```json
+   { "ok": true, "service": "awqat-proxy", "ts": "<iso>" }
+   ```
+2) `GET /api/debug/env` returns:
+   ```json
+   { "hasEmail": true, "hasPassword": true, "allowedOriginSet": true }
+   ```
+3) `GET /api/awqat/countries` returns data or a JSON error that includes
+   `upstreamStatus` when available.
+4) Render logs show request lines plus upstream error details without secrets.
