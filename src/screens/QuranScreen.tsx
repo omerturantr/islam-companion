@@ -226,7 +226,6 @@ export function QuranScreen() {
   const [error, setError] = useState<string | null>(null);
   const [playingAyah, setPlayingAyah] = useState<number | null>(null);
   const [reciter, setReciter] = useState(DEFAULT_RECITER);
-  const [bitrate, setBitrate] = useState(DEFAULT_RECITER.defaultBitrate);
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [repeatStart, setRepeatStart] = useState<number | null>(null);
   const [repeatEnd, setRepeatEnd] = useState<number | null>(null);
@@ -558,12 +557,6 @@ export function QuranScreen() {
   }, []);
 
   useEffect(() => {
-    if (!reciter.bitrates.includes(bitrate)) {
-      setBitrate(reciter.defaultBitrate);
-    }
-  }, [reciter, bitrate]);
-
-  useEffect(() => {
     stopPlayback().catch(() => undefined);
   }, [selectedSurahId]);
 
@@ -575,7 +568,7 @@ export function QuranScreen() {
 
   useEffect(() => {
     stopPlayback().catch(() => undefined);
-  }, [reciter, bitrate]);
+  }, [reciter]);
 
   useEffect(() => {
     const currentSound = soundRef.current;
@@ -703,7 +696,7 @@ export function QuranScreen() {
       setError(null);
       await stopPlayback();
       const { sound } = await Audio.Sound.createAsync(
-        { uri: getAyahAudioUrl(ayahNumber, reciter, bitrate) },
+        { uri: getAyahAudioUrl(ayahNumber, reciter) },
         { shouldPlay: true },
       );
       await sound.setRateAsync(playbackRate, true);
@@ -1019,21 +1012,6 @@ export function QuranScreen() {
     );
   };
 
-  const renderBitrateChip = (value: number) => {
-    const isActive = value === bitrate;
-    return (
-      <TouchableOpacity
-        key={`bitrate-${value}`}
-        style={[styles.selectorChip, isActive && styles.selectorChipActive]}
-        onPress={() => setBitrate(value)}
-      >
-        <Text style={[styles.selectorText, isActive && styles.activeText]}>
-          {value} kbps
-        </Text>
-      </TouchableOpacity>
-    );
-  };
-
   const renderSpeedChip = (value: number) => {
     const isActive = value === playbackRate;
     return (
@@ -1139,7 +1117,7 @@ export function QuranScreen() {
               {activeSurah.translationEnglish} | {activeSurah.ayahCount} ayahs
             </Text>
             <Text style={styles.surahMeta}>
-              {activeSurah.revelationType} | Reciter: {reciter.label} | {bitrate} kbps | {playbackRate}x
+              {activeSurah.revelationType} | Reciter: {reciter.label} | {playbackRate}x
             </Text>
           </View>
         ) : (
@@ -1435,10 +1413,6 @@ export function QuranScreen() {
         >
           {RECITERS.map(renderReciterChip)}
         </ScrollView>
-        <Text style={styles.selectorTitle}>Bitrate</Text>
-        <View style={styles.selectorRow}>
-          {reciter.bitrates.map(renderBitrateChip)}
-        </View>
         <Text style={styles.selectorTitle}>Playback Speed</Text>
         <View style={styles.selectorRow}>
           {SPEED_OPTIONS.map(renderSpeedChip)}

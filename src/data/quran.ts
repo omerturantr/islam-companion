@@ -48,8 +48,6 @@ export type Surah = SurahMeta & {
 export type Reciter = {
   id: string;
   label: string;
-  bitrates: number[];
-  defaultBitrate: number;
 };
 
 type ApiSearchMatch = {
@@ -91,42 +89,31 @@ export const RECITERS: Reciter[] = [
   {
     id: 'ar.alafasy',
     label: 'Mishary Alafasy',
-    bitrates: [64, 128],
-    defaultBitrate: 128,
   },
   {
     id: 'ar.abdulbasitmurattal',
     label: 'Abdul Basit (Murattal)',
-    bitrates: [64, 128],
-    defaultBitrate: 128,
   },
   {
     id: 'ar.husary',
     label: 'Mahmoud Al Husary',
-    bitrates: [64, 128],
-    defaultBitrate: 128,
   },
   {
     id: 'ar.minshawi',
     label: 'Minshawi',
-    bitrates: [64, 128],
-    defaultBitrate: 128,
   },
   {
     id: 'ar.sudais',
     label: 'Abdulrahman Al Sudais',
-    bitrates: [64, 128],
-    defaultBitrate: 128,
   },
   {
     id: 'ar.mahermuaiqly',
     label: 'Maher Al Muaiqly',
-    bitrates: [64, 128],
-    defaultBitrate: 128,
   },
 ];
 
 export const DEFAULT_RECITER = RECITERS[0];
+const DEFAULT_AUDIO_BITRATE = 128;
 
 const fetchJson = async <T,>(url: string): Promise<T> => {
   const response = await fetch(url);
@@ -180,9 +167,8 @@ export const fetchSurahDetail = async (id: number): Promise<Surah> => {
 export const getAyahAudioUrl = (
   ayahNumber: number,
   reciter: Reciter = DEFAULT_RECITER,
-  bitrate = reciter.defaultBitrate,
 ) =>
-  `https://cdn.islamic.network/quran/audio/${bitrate}/${reciter.id}/${ayahNumber}.mp3`;
+  `https://cdn.islamic.network/quran/audio/${DEFAULT_AUDIO_BITRATE}/${reciter.id}/${ayahNumber}.mp3`;
 
 export const searchVerses = async (
   query: string,
