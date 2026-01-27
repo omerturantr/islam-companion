@@ -139,6 +139,7 @@ export const duas: Dua[] = [
       tr: 'Allah’ım! Seninle akşama girdik, Seninle sabaha çıktık; Seninle yaşar, Seninle ölürüz. Dönüş Sana.',
       ar: 'اللهم بك أمسينا وبك أصبحنا وبك نحيا وبك نموت وإليك النشور.',
     },
+    source: 'Hisn al-Muslim',
   },
   {
     id: 'waking-up',
@@ -154,6 +155,7 @@ export const duas: Dua[] = [
       tr: 'Bizi öldürdükten sonra dirilten Allah’a hamdolsun. Dönüş O’nadır.',
       ar: 'الحمد لله الذي أحيانا بعد ما أماتنا وإليه النشور.',
     },
+    source: 'Sahih al-Bukhari',
   },
   {
     id: 'before-eating',
@@ -168,6 +170,7 @@ export const duas: Dua[] = [
       tr: 'Allah’ın adıyla.',
       ar: 'بسم الله.',
     },
+    source: 'Sahih al-Bukhari',
   },
   {
     id: 'after-eating',
@@ -183,6 +186,7 @@ export const duas: Dua[] = [
       tr: 'Bizi yediren, içiren ve Müslüman yapan Allah’a hamdolsun.',
       ar: 'الحمد لله الذي أطعمنا وسقانا وجعلنا مسلمين.',
     },
+    source: 'Sunan Abi Dawud',
   },
   {
     id: 'enter-restroom',
@@ -198,6 +202,7 @@ export const duas: Dua[] = [
       tr: 'Allah’ım! Erkek ve dişi şeytanlardan Sana sığınırım.',
       ar: 'اللهم إني أعوذ بك من الخبث والخبائث.',
     },
+    source: 'Sahih al-Bukhari',
   },
   {
     id: 'leave-restroom',
@@ -212,6 +217,7 @@ export const duas: Dua[] = [
       tr: 'Mağfiretini dilerim.',
       ar: 'غفرانك.',
     },
+    source: 'Sunan Abi Dawud',
   },
   {
     id: 'enter-mosque',
@@ -226,6 +232,7 @@ export const duas: Dua[] = [
       tr: 'Allah’ım! Rahmet kapılarını bana aç.',
       ar: 'اللهم افتح لي أبواب رحمتك.',
     },
+    source: 'Sahih Muslim',
   },
   {
     id: 'leave-mosque',
@@ -235,11 +242,12 @@ export const duas: Dua[] = [
       ar: 'دعاء الخروج من المسجد',
     },
     arabic: 'اللهم إني أسألك من فضلك',
-    translation: 'O Allah, I ask You for Your فضل (bounty).',
+    translation: 'O Allah, I ask You for Your bounty.',
     translationTranslations: {
       tr: 'Allah’ım! Lütfundan isterim.',
       ar: 'اللهم إني أسألك من فضلك.',
     },
+    source: 'Sahih Muslim',
   },
   {
     id: 'protection-evil',
@@ -255,6 +263,7 @@ export const duas: Dua[] = [
       tr: 'Allah’ın mükemmel kelimelerine, yarattıklarının şerrinden sığınırım.',
       ar: 'أعوذ بكلمات الله التامات من شر ما خلق.',
     },
+    source: 'Sahih Muslim',
   },
   {
     id: 'morning-protection',
@@ -271,6 +280,7 @@ export const duas: Dua[] = [
       tr: 'Yerde ve gökte O’nun adıyla hiçbir şey zarar veremez. O işiten ve bilendir.',
       ar: 'بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم.',
     },
+    source: 'Sunan Abi Dawud',
   },
   {
     id: 'guidance-simple',
@@ -285,6 +295,7 @@ export const duas: Dua[] = [
       tr: 'Allah’ım! Bana hidayet ver ve beni doğrult.',
       ar: 'اللهم اهدني وسددني.',
     },
+    source: 'Sahih Muslim',
   },
   {
     id: 'for-parents',
@@ -300,6 +311,7 @@ export const duas: Dua[] = [
       tr: 'Rabbim! Beni küçükken yetiştirdikleri gibi onlara merhamet et.',
       ar: 'رب ارحمهما كما ربياني صغيرا.',
     },
+    source: 'Quran 17:24',
   },
   {
     id: 'forgiveness',
@@ -315,6 +327,7 @@ export const duas: Dua[] = [
       tr: 'Rabbim! Beni bağışla ve tövbemi kabul et. Şüphesiz Sen tövbeleri kabul eden, merhametlisin.',
       ar: 'رب اغفر لي وتب علي إنك أنت التواب الرحيم.',
     },
+    source: 'Sunan Abi Dawud',
   },
   {
     id: 'patience',
@@ -330,6 +343,7 @@ export const duas: Dua[] = [
       tr: 'Rabbimiz! Üzerimize sabır yağdır ve ayaklarımızı sağlam kıl.',
       ar: 'ربنا أفرغ علينا صبرا وثبت أقدامنا.',
     },
+    source: 'Quran 2:250',
   },
   {
     id: 'gratitude',
@@ -344,5 +358,6 @@ export const duas: Dua[] = [
       tr: 'Her hâl için Allah’a hamdolsun.',
       ar: 'الحمد لله على كل حال.',
     },
+    source: 'Hisn al-Muslim',
   },
 ];
