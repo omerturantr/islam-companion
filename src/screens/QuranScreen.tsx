@@ -20,19 +20,27 @@ import type {
 } from 'react-native';
 import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  type NavigationProp,
+  type ParamListBase,
+  useNavigation,
+} from '@react-navigation/native';
 import { Screen } from '../components/Screen';
 import { SurfaceCard } from '../components/SurfaceCard';
 import {
-  Ayah,
   DEFAULT_RECITER,
   RECITERS,
+  PageAyah,
+  QuranPage,
   Surah,
   SurahMeta,
   VerseSearchMode,
   VerseSearchResult,
+  fetchAyahPage,
   fetchSurahDetail,
   fetchSurahList,
+  fetchPage,
   fetchAyahTafsir,
   getAyahAudioUrl,
   searchVerses,
@@ -57,7 +65,6 @@ const AUDIO_ERROR = 'Audio playback failed. Check your connection.';
 const DATA_ERROR_KEY = 'quran_data_error';
 const SPEED_OPTIONS = [0.75, 1.0, 1.25, 1.5];
 const SLEEP_TIMER_OPTIONS = [5, 10, 15, 30, 60];
-const FALLBACK_PAGE_SIZE = 10;
 const BISMILLAH_DISPLAY =
   '\u0628\u0650\u0633\u0652\u0645\u0650 \u0671\u0644\u0644\u0651\u0647\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0652\u0645\u064e\u0670\u0646\u0650 \u0671\u0644\u0631\u0651\u064e\u062d\u0650\u064a\u0645\u0650';
 const BISMILLAH_PLAIN =
@@ -75,52 +82,7 @@ const STOP_MARKS = new Set([
 ]);
 const JUMP_STORAGE_KEY = 'quran:jumpTarget';
 
-type SurahPage = {
-  id: string;
-  pageNumber: number | null;
-  ayahs: Ayah[];
-};
-
-const buildPages = (ayahs: Ayah[]): SurahPage[] => {
-  if (ayahs.length === 0) {
-    return [];
-  }
-
-  const hasPageNumbers = ayahs.some((ayah) => typeof ayah.page === 'number');
-  if (!hasPageNumbers) {
-    const pages: SurahPage[] = [];
-    for (let index = 0; index < ayahs.length; index += FALLBACK_PAGE_SIZE) {
-      pages.push({
-        id: `chunk-${index}`,
-        pageNumber: null,
-        ayahs: ayahs.slice(index, index + FALLBACK_PAGE_SIZE),
-      });
-    }
-    return pages;
-  }
-
-  const pageMap = new Map<number, Ayah[]>();
-  ayahs.forEach((ayah) => {
-    const page = typeof ayah.page === 'number' ? ayah.page : -1;
-    if (!pageMap.has(page)) {
-      pageMap.set(page, []);
-    }
-    pageMap.get(page)?.push(ayah);
-  });
-
-  return Array.from(pageMap.entries())
-    .sort((a, b) => a[0] - b[0])
-    .map(([pageNumber, pageAyahs]) => ({
-      id: `page-${pageNumber}`,
-      pageNumber: pageNumber > 0 ? pageNumber : null,
-      ayahs: pageAyahs,
-    }));
-};
-
-const findPageIndexForAyah = (pages: SurahPage[], ayahNumberInSurah: number) =>
-  pages.findIndex((page) =>
-    page.ayahs.some((ayah) => ayah.numberInSurah === ayahNumberInSurah),
-  );
+const MUSHAF_PAGE_COUNT = 604;
 
 const toArabicDigits = (value: number) => {
   const digits = String(value).split('');
@@ -206,6 +168,7 @@ const renderAyahSegments = (
 export function QuranScreen() {
   const { colors, mode } = useTheme();
   const { t } = useLanguage();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const highlightColor =
     mode === 'dark' ? 'rgba(159, 208, 199, 0.28)' : 'rgba(31, 92, 91, 0.12)';
   const styles = useMemo(
@@ -231,7 +194,7 @@ export function QuranScreen() {
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [repeatStart, setRepeatStart] = useState<number | null>(null);
   const [repeatEnd, setRepeatEnd] = useState<number | null>(null);
-  const [lastTappedAyah, setLastTappedAyah] = useState<Ayah | null>(null);
+  const [lastTappedAyah, setLastTappedAyah] = useState<PageAyah | null>(null);
   const [sleepTimerMinutes, setSleepTimerMinutes] = useState<number | null>(null);
   const [surahQuery, setSurahQuery] = useState('');
   const [controlsVisible, setControlsVisible] = useState(false);
@@ -243,6 +206,7 @@ export function QuranScreen() {
   const [verseSearchError, setVerseSearchError] = useState<string | null>(null);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
+  const [chromeVisible, setChromeVisible] = useState(false);
   const [selectedVerse, setSelectedVerse] = useState<{
     surahId: number;
     surahNameEnglish: string;
@@ -259,17 +223,18 @@ export function QuranScreen() {
   const [tafsirError, setTafsirError] = useState<string | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
   const [pageBodyHeight, setPageBodyHeight] = useState(0);
+  const [pageData, setPageData] = useState<Record<number, QuranPage>>({});
   const soundRef = useRef<Audio.Sound | null>(null);
-  const pageListRef = useRef<FlatList<SurahPage> | null>(null);
+  const pageListRef = useRef<FlatList<number> | null>(null);
   const suppressPressRef = useRef(0);
   const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chromeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRequestRef = useRef(0);
-  const lastAutoAdvanceRef = useRef<{ surahId: number; at: number } | null>(
-    null,
-  );
+  const pageLoadingRef = useRef<Set<number>>(new Set());
+  const surahCacheRef = useRef<Map<number, Surah>>(new Map());
   const [pendingVerseJump, setPendingVerseJump] = useState<{
-    surahId: number;
-    ayahNumberInSurah: number;
+    pageNumber: number;
+    ayahNumber: number;
   } | null>(null);
   const viewabilityConfig = useRef<ViewabilityConfig>({
     viewAreaCoveragePercentThreshold: 60,
@@ -331,19 +296,18 @@ export function QuranScreen() {
             return;
           }
           AsyncStorage.removeItem(JUMP_STORAGE_KEY).catch(() => undefined);
-          if (
-            typeof parsed.surahId !== 'number' ||
-            typeof parsed.pageIndex !== 'number'
-          ) {
+          const pageNumber =
+            typeof parsed.pageNumber === 'number'
+              ? parsed.pageNumber
+              : typeof parsed.pageIndex === 'number'
+                ? parsed.pageIndex + 1
+                : null;
+          if (!pageNumber) {
             return;
           }
-          setPendingLastRead({
-            surahId: parsed.surahId,
-            pageIndex: parsed.pageIndex,
-            pageNumber: parsed.pageNumber ?? null,
-            updatedAt: new Date().toISOString(),
-          });
-          setSelectedSurahId(parsed.surahId);
+          if (pageNumber) {
+            setPageIndex(Math.max(0, pageNumber - 1));
+          }
           setInitialSurahSet(true);
           setControlsVisible(false);
         })
@@ -411,44 +375,50 @@ export function QuranScreen() {
 
     return idMatch || nameMatch || translationMatch || arabicMatch;
   });
-  const nextSurahId = useMemo(() => {
-    if (surahs.length === 0 || !selectedSurahId) {
-      return null;
-    }
-    const index = surahs.findIndex((surah) => surah.id === selectedSurahId);
-    if (index < 0 || index + 1 >= surahs.length) {
-      return null;
-    }
-    return surahs[index + 1]?.id ?? null;
-  }, [surahs, selectedSurahId]);
+  const loadPage = useCallback(
+    async (pageNumber: number) => {
+      if (pageData[pageNumber] || pageLoadingRef.current.has(pageNumber)) {
+        return;
+      }
+      pageLoadingRef.current.add(pageNumber);
+      try {
+        const data = await fetchPage(pageNumber);
+        setPageData((current) => ({
+          ...current,
+          [pageNumber]: data,
+        }));
+      } catch (err) {
+        setError(t(DATA_ERROR_KEY));
+      } finally {
+        pageLoadingRef.current.delete(pageNumber);
+      }
+    },
+    [pageData, t],
+  );
 
   const pages = useMemo(
-    () => buildPages(activeSurah?.ayahs ?? []),
-    [activeSurah],
+    () => Array.from({ length: MUSHAF_PAGE_COUNT }, (_, index) => index + 1),
+    [],
   );
-  const currentPage = pages[pageIndex];
-  const pageIndicatorText = loadingSurah
-    ? t('quran_loading')
-    : pages.length > 0
-      ? `Page ${pageIndex + 1} of ${pages.length}${
-          currentPage?.pageNumber ? ` | Mushaf page ${currentPage.pageNumber}` : ''
-        }`
+  const currentPageNumber = pages[pageIndex] ?? pageIndex + 1;
+  const currentPage = pageData[currentPageNumber];
+  const pageIndicatorText =
+    pages.length > 0
+      ? `Page ${currentPageNumber} of ${pages.length}`
       : t('quran_select_surah');
   const pageWidth = Math.max(1, width);
   const pageTypography = useMemo(() => {
-    const fallback = { fontSize: 26, lineHeight: 46 };
+    const fallback = { fontSize: 22, lineHeight: 34 };
     if (pageBodyHeight <= 0) {
       return fallback;
     }
-    const targetLines = 10;
+    const targetLines = 16;
     const rawLineHeight = Math.floor(pageBodyHeight / targetLines);
-    const lineHeight = Math.max(32, Math.min(58, rawLineHeight));
-    const fontSize = Math.max(22, Math.min(36, Math.round(lineHeight * 0.56)));
+    const lineHeight = Math.max(26, Math.min(42, rawLineHeight));
+    const fontSize = Math.max(18, Math.min(28, Math.round(lineHeight * 0.54)));
     return { fontSize, lineHeight };
   }, [pageBodyHeight]);
-  const currentPageLabel = currentPage?.pageNumber
-    ? `Mushaf page ${currentPage.pageNumber}`
-    : `Page ${pageIndex + 1}`;
+  const currentPageLabel = `Mushaf page ${currentPageNumber}`;
   const lastReadSurah = useMemo(() => {
     if (!lastRead) {
       return null;
@@ -461,11 +431,9 @@ export function QuranScreen() {
       : `Page ${lastRead.pageIndex + 1}`
     : '';
   const canResumeLastRead = Boolean(
-    lastRead &&
-      (lastRead.surahId !== selectedSurahId ||
-        lastRead.pageIndex !== pageIndex),
+    lastRead && lastRead.pageNumber && lastRead.pageNumber - 1 !== pageIndex,
   );
-  const canBookmark = Boolean(activeSurah && currentPage);
+  const canBookmark = Boolean(currentPage);
   const orderedBookmarks = useMemo(() => {
     return [...bookmarks].sort((a, b) =>
       a.createdAt < b.createdAt ? 1 : -1,
@@ -496,67 +464,15 @@ export function QuranScreen() {
     );
   }, [selectedVerse, verseBookmarkMap]);
 
-  const previousSurahId = useMemo(() => {
-    if (surahs.length === 0 || !selectedSurahId) {
-      return null;
-    }
-    const index = surahs.findIndex((surah) => surah.id === selectedSurahId);
-    if (index <= 0) {
-      return null;
-    }
-    return surahs[index - 1]?.id ?? null;
-  }, [surahs, selectedSurahId]);
-
-  const handleEndReached = () => {
-    if (!nextSurahId) {
-      return;
-    }
-    if (pages.length === 0 || pageIndex !== pages.length - 1) {
-      return;
-    }
-    const lastAdvance = lastAutoAdvanceRef.current;
-    if (lastAdvance && lastAdvance.surahId === selectedSurahId) {
-      if (Date.now() - lastAdvance.at < 1200) {
-        return;
-      }
-    }
-    lastAutoAdvanceRef.current = { surahId: selectedSurahId, at: Date.now() };
-    setSelectedSurahId(nextSurahId);
-  };
-
-  const handleMomentumEnd = (event: any) => {
-    const offsetX = event?.nativeEvent?.contentOffset?.x ?? 0;
-    const maxOffset = (pages.length - 1) * pageWidth;
-    const atEnd = pages.length > 0 && offsetX >= maxOffset - pageWidth * 0.25;
-    const atStart = pages.length > 0 && offsetX <= pageWidth * 0.25;
-
-    if (atEnd && nextSurahId) {
-      const lastAdvance = lastAutoAdvanceRef.current;
-      if (lastAdvance && lastAdvance.surahId === selectedSurahId) {
-        if (Date.now() - lastAdvance.at < 1200) {
-          return;
-        }
-      }
-      lastAutoAdvanceRef.current = { surahId: selectedSurahId, at: Date.now() };
-      setSelectedSurahId(nextSurahId);
-      return;
-    }
-
-    if (atStart && previousSurahId) {
-      const lastAdvance = lastAutoAdvanceRef.current;
-      if (lastAdvance && lastAdvance.surahId === selectedSurahId) {
-        if (Date.now() - lastAdvance.at < 1200) {
-          return;
-        }
-      }
-      lastAutoAdvanceRef.current = { surahId: selectedSurahId, at: Date.now() };
-      setSelectedSurahId(previousSurahId);
-    }
-  };
-
   useEffect(() => {
     Audio.setAudioModeAsync({ playsInSilentModeIOS: true }).catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    navigation.setOptions({
+      tabBarStyle: chromeVisible ? undefined : { opacity: 0, pointerEvents: 'none' },
+    });
+  }, [chromeVisible, navigation]);
 
   useEffect(() => {
     let isMounted = true;
@@ -581,21 +497,27 @@ export function QuranScreen() {
   }, []);
 
   useEffect(() => {
-    if (initialSurahSet || !readingStateLoaded || surahs.length === 0) {
+    if (initialSurahSet || !readingStateLoaded) {
       return;
     }
-    const preferred =
-      lastRead && surahs.some((surah) => surah.id === lastRead.surahId)
-        ? lastRead.surahId
-        : surahs[0].id;
-    setSelectedSurahId(preferred);
+    if (lastRead?.pageNumber) {
+      setPageIndex(Math.max(0, lastRead.pageNumber - 1));
+    }
     setInitialSurahSet(true);
-  }, [initialSurahSet, readingStateLoaded, lastRead, surahs]);
+  }, [initialSurahSet, readingStateLoaded, lastRead]);
 
   useEffect(() => {
     let isMounted = true;
     if (!selectedSurahId) {
       setActiveSurah(null);
+      setLoadingSurah(false);
+      return () => {
+        isMounted = false;
+      };
+    }
+    const cached = surahCacheRef.current.get(selectedSurahId);
+    if (cached) {
+      setActiveSurah(cached);
       setLoadingSurah(false);
       return () => {
         isMounted = false;
@@ -607,6 +529,7 @@ export function QuranScreen() {
     fetchSurahDetail(selectedSurahId)
       .then((data) => {
         if (!isMounted) return;
+        surahCacheRef.current.set(selectedSurahId, data);
         setActiveSurah(data);
       })
       .catch(() => {
@@ -656,46 +579,59 @@ export function QuranScreen() {
       setPageIndex(0);
       return;
     }
-    const verseTargetIndex =
-      pendingVerseJump && pendingVerseJump.surahId === selectedSurahId
-        ? findPageIndexForAyah(pages, pendingVerseJump.ayahNumberInSurah)
-        : -1;
-    const targetIndex =
-      verseTargetIndex >= 0
-        ? verseTargetIndex
-        : pendingLastRead && pendingLastRead.surahId === selectedSurahId
-          ? Math.min(
-              pages.length - 1,
-              Math.max(0, pendingLastRead.pageIndex),
-            )
-          : 0;
+    const targetIndex = pendingVerseJump?.pageNumber
+      ? Math.max(0, pendingVerseJump.pageNumber - 1)
+      : pendingLastRead?.pageNumber
+        ? Math.max(0, pendingLastRead.pageNumber - 1)
+        : 0;
     setPageIndex(targetIndex);
     pageListRef.current?.scrollToIndex({ index: targetIndex, animated: false });
-    if (pendingVerseJump && pendingVerseJump.surahId === selectedSurahId) {
+    if (pendingVerseJump) {
       setPendingVerseJump(null);
     }
-    if (pendingLastRead && pendingLastRead.surahId === selectedSurahId) {
+    if (pendingLastRead) {
       setPendingLastRead(null);
     }
-  }, [selectedSurahId, pages, pendingLastRead, pendingVerseJump]);
+  }, [pages, pendingLastRead, pendingVerseJump]);
 
   useEffect(() => {
-    if (!activeSurah || pages.length === 0) {
+    if (pages.length === 0) {
       return;
     }
-    const page = pages[pageIndex];
-    if (!page) {
+    const pageNumber = pages[pageIndex] ?? pageIndex + 1;
+    loadPage(pageNumber).catch(() => undefined);
+    if (pageNumber + 1 <= MUSHAF_PAGE_COUNT) {
+      loadPage(pageNumber + 1).catch(() => undefined);
+    }
+    if (pageNumber - 1 >= 1) {
+      loadPage(pageNumber - 1).catch(() => undefined);
+    }
+  }, [pageIndex, pages, loadPage]);
+
+  useEffect(() => {
+    if (!currentPage) {
       return;
     }
+    const primarySurahId = currentPage.ayahs[0]?.surahId ?? 0;
+    if (primarySurahId && primarySurahId !== selectedSurahId) {
+      setSelectedSurahId(primarySurahId);
+    }
+  }, [currentPage, selectedSurahId]);
+
+  useEffect(() => {
+    if (!currentPage) {
+      return;
+    }
+    const primarySurahId = currentPage.ayahs[0]?.surahId ?? selectedSurahId;
     const record: LastRead = {
-      surahId: activeSurah.id,
+      surahId: primarySurahId,
       pageIndex,
-      pageNumber: page.pageNumber ?? null,
+      pageNumber: currentPage.pageNumber ?? currentPageNumber,
       updatedAt: new Date().toISOString(),
     };
     setLastRead(record);
     saveLastRead(record).catch(() => undefined);
-  }, [activeSurah, pageIndex, pages]);
+  }, [currentPage, currentPageNumber, pageIndex, selectedSurahId]);
 
   const stopPlayback = async () => {
     const currentSound = soundRef.current;
@@ -838,53 +774,67 @@ export function QuranScreen() {
     };
   }, [sleepTimerMinutes]);
 
-  const jumpToPage = (surahId: number, targetIndex: number, pageNumber?: number | null) => {
-    if (surahId === selectedSurahId && pages.length > 0) {
-      const clamped = Math.min(
-        pages.length - 1,
-        Math.max(0, targetIndex),
-      );
-      pageListRef.current?.scrollToIndex({ index: clamped, animated: false });
-      setPageIndex(clamped);
-      setControlsVisible(false);
+  useEffect(() => {
+    return () => {
+      if (chromeTimerRef.current) {
+        clearTimeout(chromeTimerRef.current);
+        chromeTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  const showChrome = () => {
+    setChromeVisible(true);
+    if (chromeTimerRef.current) {
+      clearTimeout(chromeTimerRef.current);
+    }
+    chromeTimerRef.current = setTimeout(() => {
+      setChromeVisible(false);
+    }, 2500);
+  };
+
+  const jumpToPage = (pageNumber: number) => {
+    if (pages.length === 0) {
       return;
     }
-    setPendingLastRead({
-      surahId,
-      pageIndex: targetIndex,
-      pageNumber: pageNumber ?? null,
-      updatedAt: new Date().toISOString(),
-    });
-    setSelectedSurahId(surahId);
+    const clamped = Math.min(
+      pages.length - 1,
+      Math.max(0, pageNumber - 1),
+    );
+    pageListRef.current?.scrollToIndex({ index: clamped, animated: false });
+    setPageIndex(clamped);
     setControlsVisible(false);
   };
 
   const handleResumeLastRead = () => {
-    if (!lastRead) {
+    if (!lastRead?.pageNumber) {
       return;
     }
-    jumpToPage(lastRead.surahId, lastRead.pageIndex, lastRead.pageNumber);
+    jumpToPage(lastRead.pageNumber);
   };
 
   const handleAddBookmark = () => {
-    if (!activeSurah || !currentPage) {
+    if (!currentPage) {
       return;
     }
+    const primarySurahId = currentPage?.ayahs[0]?.surahId ?? 0;
+    const primarySurahEnglish = currentPage?.ayahs[0]?.surahNameEnglish ?? '';
+    const primarySurahArabic = currentPage?.ayahs[0]?.surahNameArabic ?? '';
     const alreadySaved = bookmarks.some(
       (bookmark) =>
-        bookmark.surahId === activeSurah.id &&
+        bookmark.surahId === primarySurahId &&
         bookmark.pageIndex === pageIndex,
     );
     if (alreadySaved) {
       return;
     }
     const record: QuranBookmark = {
-      id: `${activeSurah.id}-${pageIndex}-${Date.now()}`,
-      surahId: activeSurah.id,
-      surahNameEnglish: activeSurah.nameEnglish,
-      surahNameArabic: activeSurah.nameArabic,
+      id: `${primarySurahId}-${pageIndex}-${Date.now()}`,
+      surahId: primarySurahId,
+      surahNameEnglish: primarySurahEnglish,
+      surahNameArabic: primarySurahArabic,
       pageIndex,
-      pageNumber: currentPage.pageNumber ?? null,
+      pageNumber: currentPage?.pageNumber ?? currentPageNumber ?? null,
       createdAt: new Date().toISOString(),
     };
     const next = [record, ...bookmarks];
@@ -899,14 +849,15 @@ export function QuranScreen() {
   };
 
   const handleGoToBookmark = (bookmark: QuranBookmark) => {
-    jumpToPage(bookmark.surahId, bookmark.pageIndex, bookmark.pageNumber);
+    const pageNumber = bookmark.pageNumber ?? bookmark.pageIndex + 1;
+    jumpToPage(pageNumber);
   };
 
   const getVerseKey = (surahId: number, ayahNumberInSurah: number) =>
     `${surahId}:${ayahNumberInSurah}`;
 
-  const openVerseModal = (ayah: Ayah, surah: Surah) => {
-    const key = getVerseKey(surah.id, ayah.numberInSurah);
+  const openVerseModal = (ayah: PageAyah) => {
+    const key = getVerseKey(ayah.surahId, ayah.numberInSurah);
     const existing = verseBookmarkMap.get(key);
     const excerptSource = ayah.textArabic.replace(/\s+/g, ' ').trim();
     const excerpt =
@@ -914,9 +865,9 @@ export function QuranScreen() {
         ? `${excerptSource.slice(0, 140)}...`
         : excerptSource;
     setSelectedVerse({
-      surahId: surah.id,
-      surahNameEnglish: surah.nameEnglish,
-      surahNameArabic: surah.nameArabic,
+      surahId: ayah.surahId,
+      surahNameEnglish: ayah.surahNameEnglish,
+      surahNameArabic: ayah.surahNameArabic,
       ayahNumber: ayah.number,
       ayahNumberInSurah: ayah.numberInSurah,
       pageIndex,
@@ -1018,35 +969,62 @@ export function QuranScreen() {
   };
 
   const handleGoToVerseBookmark = (bookmark: VerseBookmark) => {
-    jumpToPage(bookmark.surahId, bookmark.pageIndex, bookmark.pageNumber);
+    const pageNumber = bookmark.pageNumber ?? bookmark.pageIndex + 1;
+    jumpToPage(pageNumber);
   };
 
   const handleGoToSearchResult = (result: VerseSearchResult) => {
-    setPendingVerseJump({
-      surahId: result.surahId,
-      ayahNumberInSurah: result.ayahNumberInSurah,
-    });
-    setSelectedSurahId(result.surahId);
-    setInitialSurahSet(true);
-    setControlsVisible(false);
+    fetchAyahPage(result.ayahNumber)
+      .then((meta) => {
+        if (!meta.page) {
+          return;
+        }
+        setPendingVerseJump({
+          pageNumber: meta.page,
+          ayahNumber: result.ayahNumber,
+        });
+        jumpToPage(meta.page);
+      })
+      .catch(() => setVerseSearchError(t('quran_search_error')))
+      .finally(() => setControlsVisible(false));
   };
 
-  const handleAyahPress = (ayah: Ayah) => {
+  const handleAyahPress = (ayah: PageAyah) => {
     if (Date.now() - suppressPressRef.current < 800) {
       suppressPressRef.current = 0;
       return;
     }
+    showChrome();
     setLastTappedAyah(ayah);
     playAyah(ayah.number);
   };
 
-  const handleAyahLongPress = (ayah: Ayah) => {
-    if (!activeSurah) {
+  const handleAyahLongPress = (ayah: PageAyah) => {
+    suppressPressRef.current = Date.now();
+    showChrome();
+    setLastTappedAyah(ayah);
+    openVerseModal(ayah);
+  };
+
+  const handleSelectSurah = (surah: SurahMeta) => {
+    setSelectedSurahId(surah.id);
+    const cached = surahCacheRef.current.get(surah.id);
+    if (cached?.ayahs?.length) {
+      const firstPage = cached.ayahs[0]?.page;
+      if (firstPage) {
+        jumpToPage(firstPage);
+      }
       return;
     }
-    suppressPressRef.current = Date.now();
-    setLastTappedAyah(ayah);
-    openVerseModal(ayah, activeSurah);
+    fetchSurahDetail(surah.id)
+      .then((data) => {
+        surahCacheRef.current.set(surah.id, data);
+        const firstPage = data.ayahs[0]?.page;
+        if (firstPage) {
+          jumpToPage(firstPage);
+        }
+      })
+      .catch(() => setError(t(DATA_ERROR_KEY)));
   };
 
   const renderSurahChip = (surah: SurahMeta) => {
@@ -1055,7 +1033,7 @@ export function QuranScreen() {
       <TouchableOpacity
         key={surah.id}
         style={[styles.surahChip, isActive && styles.surahChipActive]}
-        onPress={() => setSelectedSurahId(surah.id)}
+        onPress={() => handleSelectSurah(surah)}
       >
         <Text style={[styles.surahChipNumber, isActive && styles.activeText]}>
           {surah.id}
@@ -1100,16 +1078,25 @@ export function QuranScreen() {
     );
   };
 
-  const renderPage = ({ item, index }: { item: SurahPage; index: number }) => {
-    const pageLabel = item.pageNumber ?? index + 1;
-    const pageTitle = activeSurah?.nameArabic ?? '';
-    const showBismillah = index === 0 && Boolean(activeSurah);
+  const renderPage = ({ item, index }: { item: number; index: number }) => {
+    const pageLabel = item;
+    const page = pageData[item];
+    const firstAyah = page?.ayahs[0];
+    const pageTitle = firstAyah?.surahNameArabic ?? '';
+    const showBismillah =
+      Boolean(firstAyah) &&
+      firstAyah?.numberInSurah === 1 &&
+      firstAyah?.surahId !== 9;
     return (
       <View style={[styles.page, rtlPaging && styles.pageRtl, { width: pageWidth }]}>
         <View style={styles.pagePaper}>
           <View style={styles.pageEdgeLeft} pointerEvents="none" />
           <View style={styles.pageEdgeRight} pointerEvents="none" />
-          <View style={styles.pageFrame}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={showChrome}
+            style={styles.pageFrame}
+          >
             {pageTitle ? (
               <View style={styles.pageHeader}>
                 <View style={styles.pageHeaderLine} />
@@ -1131,38 +1118,45 @@ export function QuranScreen() {
                 }
               }}
             >
-              <Text style={[styles.pageText, pageTypography]}>
-                {item.ayahs.map((ayah) => {
-                  let ayahText = ayah.textArabic;
-                  if (showBismillah && ayah.numberInSurah === 1) {
-                    ayahText = stripBismillah(ayahText);
-                  }
-                  if (!ayahText) {
-                    return null;
-                  }
-                  const isPlaying = playingAyah === ayah.number;
-                  return (
-                    <Text
-                      key={`ayah-${ayah.number}`}
-                      onPress={() => handleAyahPress(ayah)}
-                      onLongPress={() => handleAyahLongPress(ayah)}
-                      delayLongPress={180}
-                      suppressHighlighting
-                      style={[styles.ayahSpan, isPlaying && styles.ayahSpanActive]}
-                    >
-                      {renderAyahSegments(
-                        ayahText,
-                        `ayah-${ayah.number}`,
-                        styles.stopMark,
-                      )}
-                      {' '}
-                      <Text style={styles.ayahMarker}>
-                        {formatAyahMarker(ayah.numberInSurah)}
-                      </Text>{' '}
-                    </Text>
-                  );
-                })}
-              </Text>
+              {page ? (
+                <Text style={[styles.pageText, pageTypography]}>
+                  {page.ayahs.map((ayah) => {
+                    let ayahText = ayah.textArabic;
+                    if (showBismillah && ayah.numberInSurah === 1) {
+                      ayahText = stripBismillah(ayahText);
+                    }
+                    if (!ayahText) {
+                      return null;
+                    }
+                    const isPlaying = playingAyah === ayah.number;
+                    return (
+                      <Text
+                        key={`ayah-${ayah.number}`}
+                        onPress={() => handleAyahPress(ayah)}
+                        onLongPress={() => handleAyahLongPress(ayah)}
+                        delayLongPress={180}
+                        suppressHighlighting
+                        style={[styles.ayahSpan, isPlaying && styles.ayahSpanActive]}
+                      >
+                        {renderAyahSegments(
+                          ayahText,
+                          `ayah-${ayah.number}`,
+                          styles.stopMark,
+                        )}
+                        {' '}
+                        <Text style={styles.ayahMarker}>
+                          {formatAyahMarker(ayah.numberInSurah)}
+                        </Text>{' '}
+                      </Text>
+                    );
+                  })}
+                </Text>
+              ) : (
+                <View style={styles.emptyState}>
+                  <ActivityIndicator size="small" color={colors.pine} />
+                  <Text style={styles.emptyText}>{t('quran_loading_surah')}</Text>
+                </View>
+              )}
             </View>
             <View style={styles.pageFooter}>
               <View style={styles.pageFooterLine} />
@@ -1173,7 +1167,7 @@ export function QuranScreen() {
               </View>
               <View style={styles.pageFooterLine} />
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -1579,8 +1573,14 @@ export function QuranScreen() {
       headerVisible={false}
       contentPadding={0}
     >
-      <View style={styles.readerLayout}>
-        <View style={styles.readerHeader}>
+        <View style={styles.readerLayout}>
+        <View
+          style={[
+            styles.readerHeader,
+            !chromeVisible && styles.readerHeaderHidden,
+          ]}
+          pointerEvents={chromeVisible ? 'auto' : 'none'}
+        >
           <View>
             <Text style={styles.readerTitle}>
               {activeSurah ? activeSurah.nameEnglish : 'Quran'}
@@ -1589,7 +1589,10 @@ export function QuranScreen() {
           </View>
           <TouchableOpacity
             style={styles.readerAction}
-            onPress={() => setControlsVisible(true)}
+            onPress={() => {
+              showChrome();
+              setControlsVisible(true);
+            }}
           >
             <Text style={styles.readerActionText}>Options</Text>
           </TouchableOpacity>
@@ -1597,16 +1600,13 @@ export function QuranScreen() {
         <FlatList
           ref={pageListRef}
           data={pages}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => `page-${item}`}
           renderItem={renderPage}
           horizontal
           pagingEnabled
           initialScrollIndex={pages.length > 0 ? 0 : undefined}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.4}
-          onMomentumScrollEnd={handleMomentumEnd}
           showsHorizontalScrollIndicator={false}
           snapToInterval={pageWidth}
           decelerationRate="fast"
@@ -1777,6 +1777,9 @@ const createStyles = (
     paddingTop: spacing.lg,
     paddingBottom: spacing.xs,
   },
+  readerHeaderHidden: {
+    opacity: 0,
+  },
   readerTitle: {
     fontFamily: fonts.displayBold,
     fontSize: 22,
@@ -1813,8 +1816,8 @@ const createStyles = (
   page: {
     flex: 1,
     paddingHorizontal: spacing.xs,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.xs,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   pageRtl: {
     transform: [{ scaleX: -1 }],
@@ -1825,7 +1828,7 @@ const createStyles = (
     borderRadius: 20,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 2,
+    padding: 0,
     marginTop: 0,
     marginBottom: 0,
     shadowColor: colors.ink,
@@ -1840,8 +1843,8 @@ const createStyles = (
     borderWidth: 1,
     borderColor: colors.parchment,
     paddingHorizontal: spacing.xs,
-    paddingTop: 2,
-    paddingBottom: 2,
+    paddingTop: 0,
+    paddingBottom: 0,
     backgroundColor: colors.sand,
   },
   pageEdgeLeft: {
@@ -1867,7 +1870,7 @@ const createStyles = (
   pageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 0,
   },
   pageHeaderLine: {
     flex: 1,
@@ -1876,18 +1879,18 @@ const createStyles = (
   },
   pageHeaderTitle: {
     fontFamily: fonts.arabicBold,
-    fontSize: 18,
+    fontSize: 14,
     color: colors.pine,
     marginHorizontal: spacing.md,
     textAlign: 'center',
   },
   bismillah: {
     fontFamily: fonts.arabicBold,
-    fontSize: 22,
+    fontSize: 18,
     color: colors.pine,
     textAlign: 'center',
-    marginBottom: 4,
-    lineHeight: 34,
+    marginBottom: 2,
+    lineHeight: 26,
   },
   pageBody: {
     flex: 1,
@@ -1920,7 +1923,7 @@ const createStyles = (
   pageFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: 0,
   },
   pageFooterLine: {
     flex: 1,
@@ -1930,7 +1933,7 @@ const createStyles = (
   pageNumberBadge: {
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingVertical: 0,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 999,

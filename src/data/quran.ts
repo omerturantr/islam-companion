@@ -45,6 +45,23 @@ export type Surah = SurahMeta & {
   ayahs: Ayah[];
 };
 
+export type PageAyah = {
+  number: number;
+  numberInSurah: number;
+  textArabic: string;
+  textTranslation: string;
+  page: number;
+  surahId: number;
+  surahNameEnglish: string;
+  surahNameArabic: string;
+  surahNameTranslation: string;
+};
+
+export type QuranPage = {
+  pageNumber: number;
+  ayahs: PageAyah[];
+};
+
 export type Reciter = {
   id: string;
   label: string;
@@ -161,6 +178,54 @@ export const fetchSurahDetail = async (id: number): Promise<Surah> => {
   return {
     ...meta,
     ayahs,
+  };
+};
+
+export const fetchPage = async (pageNumber: number): Promise<QuranPage> => {
+  const [arabic, translation] = await Promise.all([
+    fetchJson<ApiResponse<{ number: number; ayahs: ApiAyah[] }>>(
+      `${API_BASE}/page/${pageNumber}/quran-uthmani`,
+    ),
+    fetchJson<ApiResponse<{ number: number; ayahs: ApiAyah[] }>>(
+      `${API_BASE}/page/${pageNumber}/en.sahih`,
+    ),
+  ]);
+
+  const translationMap = new Map(
+    translation.data.ayahs.map((ayah) => [ayah.number, ayah.text]),
+  );
+
+  const ayahs: PageAyah[] = arabic.data.ayahs.map((ayah) => {
+    const surahMeta = (ayah as ApiAyah & { surah?: ApiSurahMeta }).surah;
+    return {
+      number: ayah.number,
+      numberInSurah: ayah.numberInSurah,
+      textArabic: ayah.text,
+      textTranslation: translationMap.get(ayah.number) ?? '',
+      page: ayah.page ?? pageNumber,
+      surahId: surahMeta?.number ?? 0,
+      surahNameEnglish: surahMeta?.englishName ?? '',
+      surahNameArabic: surahMeta?.name ?? '',
+      surahNameTranslation: surahMeta?.englishNameTranslation ?? '',
+    };
+  });
+
+  return {
+    pageNumber,
+    ayahs,
+  };
+};
+
+export const fetchAyahPage = async (ayahNumber: number) => {
+  const json = await fetchJson<ApiResponse<ApiAyah & { surah: ApiSurahMeta }>>(
+    `${API_BASE}/ayah/${ayahNumber}/quran-uthmani`,
+  );
+  return {
+    page: json.data.page ?? null,
+    surahId: json.data.surah?.number ?? 0,
+    surahNameEnglish: json.data.surah?.englishName ?? '',
+    surahNameArabic: json.data.surah?.name ?? '',
+    surahNameTranslation: json.data.surah?.englishNameTranslation ?? '',
   };
 };
 
