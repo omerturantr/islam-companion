@@ -6,9 +6,11 @@ import { duas } from '../data/duas';
 import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 export function DuasScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState('');
 
@@ -31,18 +33,21 @@ export function DuasScreen() {
   }, [normalizedQuery]);
 
   return (
-    <Screen title="Duas" subtitle="Daily remembrances">
+    <Screen title={t('app_duas')} subtitle={t('tabs_duas')}>
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.searchLabel}>Search</Text>
+        <Text style={styles.searchLabel}>{t('duas_search')}</Text>
         <TextInput
           value={query}
           onChangeText={setQuery}
-          placeholder="Search by title, text, or source"
+          placeholder={t('duas_search_placeholder')}
           placeholderTextColor={colors.muted}
           style={styles.searchInput}
         />
         <Text style={styles.searchHint}>
-          {filteredDuas.length} result{filteredDuas.length === 1 ? '' : 's'}
+          {filteredDuas.length}{' '}
+          {filteredDuas.length === 1
+            ? t('duas_result_singular')
+            : t('duas_result_plural')}
         </Text>
       </SurfaceCard>
 
@@ -58,7 +63,7 @@ export function DuasScreen() {
           </SurfaceCard>
         ))}
         {filteredDuas.length === 0 ? (
-          <Text style={styles.emptyText}>No duas match your search.</Text>
+          <Text style={styles.emptyText}>{t('duas_no_results')}</Text>
         ) : null}
       </View>
     </Screen>

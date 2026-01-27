@@ -29,6 +29,7 @@ import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
 import { formatDate, formatTime } from '../utils/format';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 const NOTIFICATION_ADVANCE_MINUTES = 15;
 const POST_PRAYER_NOTE_MINUTES = 1;
@@ -37,10 +38,6 @@ const SCHEDULE_DAYS = 7;
 const PRAYER_REMINDER_CHANNEL = 'prayer-reminders';
 const PRAYER_ADHAN_CHANNEL = 'prayer-adhan';
 const LOCATION_STORAGE_KEY = 'settings:location';
-
-const LOCATION_ERROR = 'Unable to get your location.';
-const LOCATION_DISABLED = 'Location services are disabled.';
-const PERMISSION_REQUIRED = 'Enable location permission to use current location.';
 
 type DaySchedule = {
   date: Date;
@@ -192,6 +189,7 @@ const schedulePrayerNotifications = async (
 
 export function PrayerTimesScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [now, setNow] = useState(() => new Date());
@@ -302,13 +300,13 @@ export function PrayerTimesScreen() {
     try {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
       if (!servicesEnabled) {
-        setLocationError(LOCATION_DISABLED);
+        setLocationError(t('prayer_location_disabled'));
         return;
       }
 
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setLocationError(PERMISSION_REQUIRED);
+        setLocationError(t('prayer_permission_required'));
         return;
       }
 
@@ -343,7 +341,7 @@ export function PrayerTimesScreen() {
         longitude: current.coords.longitude,
       });
     } catch (err) {
-      setLocationError(LOCATION_ERROR);
+      setLocationError(t('prayer_location_error'));
     } finally {
       setLocationLoading(false);
     }
@@ -354,23 +352,23 @@ export function PrayerTimesScreen() {
   };
 
   return (
-    <Screen title="Prayer Times" subtitle={subtitle}>
+    <Screen title={t('app_prayer_times')} subtitle={subtitle}>
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.nextPrayerLabel}>Next Prayer</Text>
+        <Text style={styles.nextPrayerLabel}>{t('prayer_next')}</Text>
         {next ? (
           <>
             <Text style={styles.nextPrayer}>{next.label}</Text>
             <Text style={styles.nextTime}>
               {formatTime(next.time)}
-              {next.isTomorrow ? ' (tomorrow)' : ''}
+              {next.isTomorrow ? ` (${t('prayer_tomorrow')})` : ''}
             </Text>
             <View style={styles.countdownRow}>
-              <Text style={styles.countdownLabel}>Time remaining</Text>
+              <Text style={styles.countdownLabel}>{t('prayer_time_remaining')}</Text>
               <Text style={styles.countdownValue}>{countdown}</Text>
             </View>
           </>
         ) : (
-          <Text style={styles.helperText}>Prayer times unavailable.</Text>
+          <Text style={styles.helperText}>{t('prayer_times_unavailable')}</Text>
         )}
         <View style={styles.metaRow}>
           <Text style={styles.metaText}>{methodLabel}</Text>
@@ -380,9 +378,9 @@ export function PrayerTimesScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.cardEyebrow}>Location</Text>
+        <Text style={styles.cardEyebrow}>{t('prayer_location')}</Text>
         <View style={styles.locationRow}>
-          <Text style={styles.locationLabel}>Current</Text>
+          <Text style={styles.locationLabel}>{t('prayer_current')}</Text>
           <Text style={styles.locationValue}>{locationLabel}</Text>
         </View>
         <Text style={styles.locationMeta}>{locationDetails}</Text>
@@ -391,26 +389,26 @@ export function PrayerTimesScreen() {
             style={styles.locationButton}
             onPress={detectLocation}
           >
-            <Text style={styles.locationButtonText}>Use current location</Text>
+            <Text style={styles.locationButtonText}>{t('prayer_use_current')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.locationButtonSecondary}
             onPress={resetLocation}
           >
-            <Text style={styles.locationButtonSecondaryText}>Use Istanbul</Text>
+            <Text style={styles.locationButtonSecondaryText}>{t('prayer_use_istanbul')}</Text>
           </TouchableOpacity>
         </View>
         {locationLoading ? (
           <View style={styles.loadingRow}>
             <ActivityIndicator size="small" color={colors.pine} />
-            <Text style={styles.loadingText}>Updating location...</Text>
+            <Text style={styles.loadingText}>{t('prayer_updating_location')}</Text>
           </View>
         ) : null}
         {locationError ? <Text style={styles.errorText}>{locationError}</Text> : null}
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.cardEyebrow}>Today</Text>
+        <Text style={styles.cardEyebrow}>{t('prayer_times_today')}</Text>
           <View style={styles.timesList}>
             {entries.map((entry) => (
               <View key={entry.id} style={styles.timeRow}>

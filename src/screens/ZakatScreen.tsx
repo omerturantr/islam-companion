@@ -12,24 +12,25 @@ import {
 import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 const ZAKAT_RATE = 0.025;
 
-const ASSET_FIELDS: Array<{ key: keyof ZakatAssets; label: string }> = [
-  { key: 'cash', label: 'Cash' },
-  { key: 'bank', label: 'Bank balance' },
-  { key: 'gold', label: 'Gold' },
-  { key: 'silver', label: 'Silver' },
-  { key: 'investments', label: 'Investments' },
-  { key: 'receivables', label: 'Receivables' },
-  { key: 'businessInventory', label: 'Business inventory' },
-  { key: 'other', label: 'Other assets' },
+const ASSET_FIELDS: Array<{ key: keyof ZakatAssets; labelKey: string }> = [
+  { key: 'cash', labelKey: 'zakat_cash' },
+  { key: 'bank', labelKey: 'zakat_bank' },
+  { key: 'gold', labelKey: 'zakat_gold' },
+  { key: 'silver', labelKey: 'zakat_silver' },
+  { key: 'investments', labelKey: 'zakat_investments' },
+  { key: 'receivables', labelKey: 'zakat_receivables' },
+  { key: 'businessInventory', labelKey: 'zakat_business_inventory' },
+  { key: 'other', labelKey: 'zakat_other_assets' },
 ];
 
-const LIABILITY_FIELDS: Array<{ key: keyof ZakatLiabilities; label: string }> = [
-  { key: 'debts', label: 'Debts due' },
-  { key: 'expenses', label: 'Upcoming expenses' },
-  { key: 'other', label: 'Other liabilities' },
+const LIABILITY_FIELDS: Array<{ key: keyof ZakatLiabilities; labelKey: string }> = [
+  { key: 'debts', labelKey: 'zakat_debts' },
+  { key: 'expenses', labelKey: 'zakat_expenses' },
+  { key: 'other', labelKey: 'zakat_other_liabilities' },
 ];
 
 const EMPTY_ASSETS: Record<keyof ZakatAssets, string> = {
@@ -76,6 +77,7 @@ const createId = () =>
 
 export function ZakatScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [profileName, setProfileName] = useState('');
@@ -139,19 +141,19 @@ export function ZakatScreen() {
 
   const status = useMemo(() => {
     if (netWorth <= 0) {
-      return { text: 'Net assets are zero or below.', tone: 'negative' as const };
+      return { text: t('zakat_status_zero'), tone: 'negative' as const };
     }
     if (nisabValue <= 0) {
       return {
-        text: 'Set a nisab threshold to confirm eligibility.',
+        text: t('zakat_status_set_nisab'),
         tone: 'neutral' as const,
       };
     }
     if (netWorth >= nisabValue) {
-      return { text: 'Above nisab. Zakat is due.', tone: 'positive' as const };
+      return { text: t('zakat_status_due'), tone: 'positive' as const };
     }
-    return { text: 'Below nisab. Zakat is not due.', tone: 'negative' as const };
-  }, [netWorth, nisabValue]);
+    return { text: t('zakat_status_not_due'), tone: 'negative' as const };
+  }, [netWorth, nisabValue, t]);
 
   const orderedProfiles = useMemo(() => {
     return [...profiles].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
@@ -252,13 +254,13 @@ export function ZakatScreen() {
     currencyLabel ? `${currencyLabel} ${formatAmount(value)}` : formatAmount(value);
 
   return (
-    <Screen title="Zakat" subtitle="Annual giving calculator">
+    <Screen title={t('app_zakat')} subtitle={t('tabs_zakat')}>
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Profile</Text>
+        <Text style={styles.sectionTitle}>{t('zakat_profile')}</Text>
         {activeProfileId ? (
-          <Text style={styles.activeProfileText}>Editing saved profile</Text>
+          <Text style={styles.activeProfileText}>{t('zakat_editing_profile')}</Text>
         ) : null}
-        <Text style={styles.inputLabel}>Profile name</Text>
+        <Text style={styles.inputLabel}>{t('zakat_profile_name')}</Text>
         <TextInput
           value={profileName}
           onChangeText={(value) => {
@@ -271,7 +273,7 @@ export function ZakatScreen() {
         />
         <View style={styles.inlineRow}>
           <View style={styles.inlineField}>
-            <Text style={styles.inputLabel}>Currency</Text>
+            <Text style={styles.inputLabel}>{t('zakat_currency')}</Text>
             <TextInput
               value={currency}
               onChangeText={(value) => {
@@ -285,7 +287,7 @@ export function ZakatScreen() {
             />
           </View>
           <View style={[styles.inlineField, styles.inlineFieldLast]}>
-            <Text style={styles.inputLabel}>Nisab</Text>
+            <Text style={styles.inputLabel}>{t('zakat_nisab')}</Text>
             <TextInput
               value={nisabInput}
               onChangeText={(value) => {
@@ -299,27 +301,25 @@ export function ZakatScreen() {
             />
           </View>
         </View>
-        <Text style={styles.helperText}>
-          Enter the nisab amount in your currency (based on gold or silver).
-        </Text>
+        <Text style={styles.helperText}>{t('zakat_nisab_hint')}</Text>
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.primaryButton} onPress={handleSaveProfile}>
             <Text style={styles.primaryButtonText}>
-              {activeProfileId ? 'Update profile' : 'Save profile'}
+              {activeProfileId ? t('zakat_update_profile') : t('zakat_save_profile')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.secondaryButton} onPress={clearForm}>
-            <Text style={styles.secondaryButtonText}>New</Text>
+            <Text style={styles.secondaryButtonText}>{t('zakat_new_profile')}</Text>
           </TouchableOpacity>
         </View>
         {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Zakatable assets</Text>
+        <Text style={styles.sectionTitle}>{t('zakat_assets')}</Text>
         {ASSET_FIELDS.map((field) => (
           <View key={field.key} style={styles.amountRow}>
-            <Text style={styles.amountLabel}>{field.label}</Text>
+            <Text style={styles.amountLabel}>{t(field.labelKey)}</Text>
             <View style={styles.amountInputWrap}>
               {currencyLabel ? (
                 <Text style={styles.currencyLabel}>{currencyLabel}</Text>
@@ -338,10 +338,10 @@ export function ZakatScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Liabilities</Text>
+        <Text style={styles.sectionTitle}>{t('zakat_liabilities')}</Text>
         {LIABILITY_FIELDS.map((field) => (
           <View key={field.key} style={styles.amountRow}>
-            <Text style={styles.amountLabel}>{field.label}</Text>
+            <Text style={styles.amountLabel}>{t(field.labelKey)}</Text>
             <View style={styles.amountInputWrap}>
               {currencyLabel ? (
                 <Text style={styles.currencyLabel}>{currencyLabel}</Text>
@@ -360,23 +360,23 @@ export function ZakatScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Summary</Text>
+        <Text style={styles.sectionTitle}>{t('zakat_summary')}</Text>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Total assets</Text>
+          <Text style={styles.summaryLabel}>{t('zakat_total_assets')}</Text>
           <Text style={styles.summaryValue}>{formatCurrencyValue(assetTotal)}</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Total liabilities</Text>
+          <Text style={styles.summaryLabel}>{t('zakat_total_liabilities')}</Text>
           <Text style={styles.summaryValue}>
             {formatCurrencyValue(liabilityTotal)}
           </Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Net assets</Text>
+          <Text style={styles.summaryLabel}>{t('zakat_net_assets')}</Text>
           <Text style={styles.summaryValue}>{formatCurrencyValue(netWorth)}</Text>
         </View>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Zakat due (2.5%)</Text>
+          <Text style={styles.summaryLabel}>{t('zakat_due')}</Text>
           <Text style={styles.summaryValueStrong}>
             {formatCurrencyValue(zakatDue)}
           </Text>
@@ -393,7 +393,7 @@ export function ZakatScreen() {
       </SurfaceCard>
 
       <SurfaceCard>
-        <Text style={styles.sectionTitle}>Saved profiles</Text>
+        <Text style={styles.sectionTitle}>{t('zakat_saved_profiles')}</Text>
         {orderedProfiles.length > 0 ? (
           <View>
             {orderedProfiles.map((profile) => {
@@ -422,13 +422,13 @@ export function ZakatScreen() {
                       style={styles.profileButton}
                       onPress={() => handleLoadProfile(profile)}
                     >
-                      <Text style={styles.profileButtonText}>Load</Text>
+                      <Text style={styles.profileButtonText}>{t('zakat_load')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.profileDeleteButton}
                       onPress={() => handleDeleteProfile(profile.id)}
                     >
-                      <Text style={styles.profileDeleteText}>Delete</Text>
+                      <Text style={styles.profileDeleteText}>{t('zakat_delete')}</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -436,9 +436,7 @@ export function ZakatScreen() {
             })}
           </View>
         ) : (
-          <Text style={styles.helperText}>
-            No profiles yet. Save a profile to reuse later.
-          </Text>
+          <Text style={styles.helperText}>{t('zakat_no_profiles')}</Text>
         )}
       </SurfaceCard>
     </Screen>

@@ -19,6 +19,7 @@ import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
 import { formatDate, formatTime } from '../utils/format';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 const LOCATION_STORAGE_KEY = 'settings:location';
 const DAYS_RANGE = 30;
@@ -52,6 +53,7 @@ const buildSchedule = (
 
 export function CalendarScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
 
@@ -94,11 +96,11 @@ export function CalendarScreen() {
   const todayKey = new Date().toDateString();
 
   return (
-    <Screen title="Prayer Calendar" subtitle={subtitle}>
+    <Screen title={t('tabs_calendar')} subtitle={subtitle}>
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.cardEyebrow}>Location</Text>
+        <Text style={styles.cardEyebrow}>{t('prayer_location')}</Text>
         <View style={styles.locationRow}>
-          <Text style={styles.locationLabel}>Current</Text>
+          <Text style={styles.locationLabel}>{t('prayer_current')}</Text>
           <Text style={styles.locationValue}>{locationLabel}</Text>
         </View>
         <Text style={styles.locationMeta}>
@@ -108,12 +110,12 @@ export function CalendarScreen() {
           style={styles.locationButton}
           onPress={() => navigation.navigate('Prayer')}
         >
-          <Text style={styles.locationButtonText}>Change location</Text>
+          <Text style={styles.locationButtonText}>{t('calendar_change_location')}</Text>
         </TouchableOpacity>
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.cardEyebrow}>Next {DAYS_RANGE} Days</Text>
+        <Text style={styles.cardEyebrow}>{t('calendar_next_days')}</Text>
         <View style={styles.calendarList}>
           {schedule.map((item) => {
             const timesText = item.entries
@@ -133,7 +135,7 @@ export function CalendarScreen() {
             );
           })}
           {schedule.length === 0 ? (
-            <Text style={styles.helperText}>Prayer schedule unavailable.</Text>
+            <Text style={styles.helperText}>{t('calendar_unavailable')}</Text>
           ) : null}
         </View>
       </SurfaceCard>

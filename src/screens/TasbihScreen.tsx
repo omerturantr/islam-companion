@@ -23,6 +23,7 @@ import {
 import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 const DEFAULT_DHIKR: DhikrItem[] = [
   { id: 'subhanallah', name: 'SubhanAllah', target: 33 },
@@ -53,6 +54,7 @@ const createId = () =>
 
 export function TasbihScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [customDhikr, setCustomDhikr] = useState<DhikrItem[]>([]);
@@ -187,9 +189,9 @@ export function TasbihScreen() {
   };
 
   return (
-    <Screen title="Tasbih" subtitle="Dhikr counter and goals">
+    <Screen title={t('app_tasbih')} subtitle={t('tabs_tasbih')}>
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Dhikr</Text>
+        <Text style={styles.sectionTitle}>{t('tasbih_dhikr')}</Text>
         <View style={styles.chipRow}>
           {allDhikr.map((item) => {
             const isSelected = item.id === selectedDhikr?.id;
@@ -222,7 +224,7 @@ export function TasbihScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Counter</Text>
+        <Text style={styles.sectionTitle}>{t('tasbih_counter')}</Text>
         {selectedDhikr ? (
           <View style={styles.counterContent}>
             <Text style={styles.counterLabel}>{selectedDhikr.name}</Text>
@@ -232,7 +234,7 @@ export function TasbihScreen() {
               activeOpacity={0.85}
             >
               <Text style={styles.counterValue}>{count}</Text>
-              <Text style={styles.counterHint}>Tap to count</Text>
+              <Text style={styles.counterHint}>{t('tasbih_tap_to_count')}</Text>
             </TouchableOpacity>
             <View style={styles.progressTrack}>
               <View
@@ -244,30 +246,30 @@ export function TasbihScreen() {
             </View>
             <View style={styles.statRow}>
               <View style={styles.statBox}>
-                <Text style={styles.statLabel}>Target</Text>
+                <Text style={styles.statLabel}>{t('tasbih_target')}</Text>
                 <Text style={styles.statValue}>{target}</Text>
               </View>
               <View style={styles.statBox}>
-                <Text style={styles.statLabel}>Remaining</Text>
+                <Text style={styles.statLabel}>{t('tasbih_remaining')}</Text>
                 <Text style={styles.statValue}>{remaining}</Text>
               </View>
               <View style={styles.statBox}>
-                <Text style={styles.statLabel}>Cycles</Text>
+                <Text style={styles.statLabel}>{t('tasbih_cycles')}</Text>
                 <Text style={styles.statValue}>{cycles}</Text>
               </View>
             </View>
             <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-              <Text style={styles.resetButtonText}>Reset counter</Text>
+              <Text style={styles.resetButtonText}>{t('tasbih_reset')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <Text style={styles.helperText}>Select a dhikr to begin.</Text>
+          <Text style={styles.helperText}>{t('tasbih_select_prompt')}</Text>
         )}
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Custom dhikr</Text>
-        <Text style={styles.inputLabel}>Name</Text>
+        <Text style={styles.sectionTitle}>{t('tasbih_custom')}</Text>
+        <Text style={styles.inputLabel}>{t('tasbih_name')}</Text>
         <TextInput
           value={nameInput}
           onChangeText={(value) => {
@@ -278,7 +280,7 @@ export function TasbihScreen() {
           placeholderTextColor={colors.muted}
           style={styles.textInput}
         />
-        <Text style={styles.inputLabel}>Target</Text>
+        <Text style={styles.inputLabel}>{t('tasbih_target_label')}</Text>
         <TextInput
           value={targetInput}
           onChangeText={(value) => {
@@ -291,7 +293,7 @@ export function TasbihScreen() {
           style={styles.textInput}
         />
         <TouchableOpacity style={styles.primaryButton} onPress={handleAddCustom}>
-          <Text style={styles.primaryButtonText}>Add dhikr</Text>
+          <Text style={styles.primaryButtonText}>{t('tasbih_add')}</Text>
         </TouchableOpacity>
         {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
         {customDhikr.length > 0 ? (
@@ -306,22 +308,20 @@ export function TasbihScreen() {
                   style={styles.removeButton}
                   onPress={() => handleRemoveCustom(item.id)}
                 >
-                  <Text style={styles.removeButtonText}>Remove</Text>
+                  <Text style={styles.removeButtonText}>{t('tasbih_remove')}</Text>
                 </TouchableOpacity>
               </View>
             ))}
           </View>
         ) : (
-          <Text style={styles.helperText}>
-            Add a custom dhikr to keep a personal counter.
-          </Text>
+          <Text style={styles.helperText}>{t('tasbih_custom_hint')}</Text>
         )}
       </SurfaceCard>
 
       <SurfaceCard>
-        <Text style={styles.sectionTitle}>Preferences</Text>
+        <Text style={styles.sectionTitle}>{t('tasbih_preferences')}</Text>
         <View style={styles.preferenceRow}>
-          <Text style={styles.preferenceLabel}>Vibration</Text>
+          <Text style={styles.preferenceLabel}>{t('tasbih_vibration')}</Text>
           <Switch
             trackColor={{ false: colors.border, true: colors.oasis }}
             thumbColor={vibrationEnabled ? colors.pine : colors.parchment}

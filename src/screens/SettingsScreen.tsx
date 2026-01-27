@@ -12,6 +12,7 @@ import {
 import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 const PRAYER_LABELS: Record<PrayerId, string> = {
   fajr: 'Fajr',
@@ -24,6 +25,7 @@ const PRAYER_LABELS: Record<PrayerId, string> = {
 
 export function SettingsScreen() {
   const { colors, mode, setMode } = useTheme();
+  const { t, language, setLanguage } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [settings, setSettings] = useState<NotificationSettings>(
@@ -80,26 +82,24 @@ export function SettingsScreen() {
   const toggleTheme = () => setMode(isDark ? 'light' : 'dark');
 
   return (
-    <Screen title="Settings" subtitle="Preferences and reminders">
+    <Screen title={t('app_settings')} subtitle={t('tabs_settings')}>
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Prayer Method</Text>
+        <Text style={styles.sectionTitle}>{t('settings_prayer_method')}</Text>
         <View style={styles.rowBetween}>
-          <Text style={styles.labelText}>Calculation</Text>
+          <Text style={styles.labelText}>{t('settings_calculation')}</Text>
           <Text style={styles.valueText}>Diyanet (Turkey)</Text>
         </View>
         <View style={styles.rowBetween}>
-          <Text style={styles.labelText}>Madhhab</Text>
+          <Text style={styles.labelText}>{t('settings_madhhab')}</Text>
           <Text style={styles.valueText}>Hanafi</Text>
         </View>
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Notifications</Text>
-        <Text style={styles.sectionHelper}>
-          Schedule reminders and adhan at prayer times.
-        </Text>
+        <Text style={styles.sectionTitle}>{t('settings_notifications')}</Text>
+        <Text style={styles.sectionHelper}>{t('settings_notifications_helper')}</Text>
         <View style={styles.rowBetween}>
-          <Text style={styles.labelText}>Enable notifications</Text>
+          <Text style={styles.labelText}>{t('settings_enable_notifications')}</Text>
           <Switch
             trackColor={{ false: colors.border, true: colors.oasis }}
             thumbColor={settings.enabled ? colors.pine : colors.parchment}
@@ -108,7 +108,7 @@ export function SettingsScreen() {
           />
         </View>
         <View style={styles.rowBetween}>
-          <Text style={styles.labelText}>Lead time</Text>
+          <Text style={styles.labelText}>{t('settings_lead_time')}</Text>
           <View style={styles.stepper}>
             <TouchableOpacity
               style={[
@@ -148,9 +148,9 @@ export function SettingsScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.sectionTitle}>Appearance</Text>
+        <Text style={styles.sectionTitle}>{t('settings_appearance')}</Text>
         <View style={styles.rowBetween}>
-          <Text style={styles.labelText}>Dark mode</Text>
+          <Text style={styles.labelText}>{t('settings_dark_mode')}</Text>
           <Switch
             trackColor={{ false: colors.border, true: colors.oasis }}
             thumbColor={isDark ? colors.pine : colors.parchment}
@@ -160,15 +160,47 @@ export function SettingsScreen() {
         </View>
       </SurfaceCard>
 
-      <SurfaceCard>
-        <Text style={styles.sectionTitle}>Reading</Text>
+      <SurfaceCard style={styles.cardSpacing}>
+        <Text style={styles.sectionTitle}>{t('settings_reading')}</Text>
         <View style={styles.rowBetween}>
-          <Text style={styles.labelText}>Translation</Text>
+          <Text style={styles.labelText}>{t('settings_translation')}</Text>
           <Text style={styles.valueText}>English (Sahih International)</Text>
         </View>
         <View style={styles.rowBetween}>
-          <Text style={styles.labelText}>Font size</Text>
-          <Text style={styles.valueText}>Medium</Text>
+          <Text style={styles.labelText}>{t('settings_font_size')}</Text>
+          <Text style={styles.valueText}>{t('common_medium')}</Text>
+        </View>
+      </SurfaceCard>
+
+      <SurfaceCard>
+        <Text style={styles.sectionTitle}>{t('settings_language')}</Text>
+        <Text style={styles.sectionHelper}>{t('settings_language_helper')}</Text>
+        <View style={styles.rowBetween}>
+          <Text style={styles.labelText}>{t('common_english')}</Text>
+          <Switch
+            trackColor={{ false: colors.border, true: colors.oasis }}
+            thumbColor={language === 'en' ? colors.pine : colors.parchment}
+            onValueChange={() => setLanguage('en')}
+            value={language === 'en'}
+          />
+        </View>
+        <View style={styles.rowBetween}>
+          <Text style={styles.labelText}>{t('common_turkish')}</Text>
+          <Switch
+            trackColor={{ false: colors.border, true: colors.oasis }}
+            thumbColor={language === 'tr' ? colors.pine : colors.parchment}
+            onValueChange={() => setLanguage('tr')}
+            value={language === 'tr'}
+          />
+        </View>
+        <View style={styles.rowBetween}>
+          <Text style={styles.labelText}>{t('common_arabic')}</Text>
+          <Switch
+            trackColor={{ false: colors.border, true: colors.oasis }}
+            thumbColor={language === 'ar' ? colors.pine : colors.parchment}
+            onValueChange={() => setLanguage('ar')}
+            value={language === 'ar'}
+          />
         </View>
       </SurfaceCard>
     </Screen>

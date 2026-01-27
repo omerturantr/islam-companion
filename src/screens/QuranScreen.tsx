@@ -40,6 +40,7 @@ import {
 import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
+import { useLanguage } from '../i18n/LanguageProvider';
 import {
   loadBookmarks,
   loadLastRead,
@@ -53,7 +54,7 @@ import {
 } from '../lib/quranReading';
 
 const AUDIO_ERROR = 'Audio playback failed. Check your connection.';
-const DATA_ERROR = 'Unable to load Quran data. Please try again.';
+const DATA_ERROR_KEY = 'quran_data_error';
 const SPEED_OPTIONS = [0.75, 1.0, 1.25, 1.5];
 const SLEEP_TIMER_OPTIONS = [5, 10, 15, 30, 60];
 const FALLBACK_PAGE_SIZE = 10;
@@ -204,6 +205,7 @@ const renderAyahSegments = (
 
 export function QuranScreen() {
   const { colors, mode } = useTheme();
+  const { t } = useLanguage();
   const highlightColor =
     mode === 'dark' ? 'rgba(159, 208, 199, 0.28)' : 'rgba(31, 92, 91, 0.12)';
   const styles = useMemo(
@@ -378,7 +380,7 @@ export function QuranScreen() {
           if (searchRequestRef.current !== requestId) {
             return;
           }
-          setVerseSearchError('Unable to search verses right now.');
+          setVerseSearchError(t('quran_search_error'));
           setVerseResults([]);
         })
         .finally(() => {
@@ -413,12 +415,12 @@ export function QuranScreen() {
   );
   const currentPage = pages[pageIndex];
   const pageIndicatorText = loadingSurah
-    ? 'Loading pages...'
+    ? t('quran_loading')
     : pages.length > 0
       ? `Page ${pageIndex + 1} of ${pages.length}${
           currentPage?.pageNumber ? ` | Mushaf page ${currentPage.pageNumber}` : ''
         }`
-      : 'Select a surah to begin.';
+      : t('quran_select_surah');
   const pageWidth = Math.max(1, width);
   const pageTypography = useMemo(() => {
     const fallback = { fontSize: 26, lineHeight: 46 };
@@ -495,7 +497,7 @@ export function QuranScreen() {
       })
       .catch(() => {
         if (!isMounted) return;
-        setError(DATA_ERROR);
+        setError(t(DATA_ERROR_KEY));
       })
       .finally(() => {
         if (!isMounted) return;
@@ -538,7 +540,7 @@ export function QuranScreen() {
       })
       .catch(() => {
         if (!isMounted) return;
-        setError(DATA_ERROR);
+        setError(t(DATA_ERROR_KEY));
       })
       .finally(() => {
         if (!isMounted) return;
@@ -1109,7 +1111,7 @@ export function QuranScreen() {
   const controls = (
     <View>
       <SurfaceCard style={styles.sectionSpacing}>
-        <Text style={styles.cardEyebrow}>Surah</Text>
+        <Text style={styles.cardEyebrow}>{t('quran_surah')}</Text>
         {activeSurah ? (
           <View>
             <Text style={styles.surahTitle}>{activeSurah.nameEnglish}</Text>
@@ -1126,7 +1128,7 @@ export function QuranScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.sectionSpacing}>
-        <Text style={styles.cardEyebrow}>Last Read</Text>
+        <Text style={styles.cardEyebrow}>{t('quran_last_read')}</Text>
         {lastReadSurah ? (
           <View>
             <Text style={styles.lastReadTitle}>{lastReadSurah.nameEnglish}</Text>
@@ -1146,12 +1148,12 @@ export function QuranScreen() {
                   !canResumeLastRead && styles.bookmarkButtonTextDisabled,
                 ]}
               >
-                Go to last read
+                {t('quran_go_to_last_read')}
               </Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <Text style={styles.helperText}>No last read saved yet.</Text>
+          <Text style={styles.helperText}>{t('quran_no_last_read')}</Text>
         )}
       </SurfaceCard>
 
@@ -1198,13 +1200,13 @@ export function QuranScreen() {
                     style={styles.bookmarkActionButton}
                     onPress={() => handleGoToBookmark(bookmark)}
                   >
-                    <Text style={styles.bookmarkActionText}>Go</Text>
+                    <Text style={styles.bookmarkActionText}>{t('quran_go')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.bookmarkDeleteButton}
                     onPress={() => handleRemoveBookmark(bookmark.id)}
                   >
-                    <Text style={styles.bookmarkDeleteText}>Remove</Text>
+                    <Text style={styles.bookmarkDeleteText}>{t('quran_remove')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -1236,7 +1238,7 @@ export function QuranScreen() {
                       {bookmark.note}
                     </Text>
                   ) : (
-                    <Text style={styles.bookmarkMeta}>No note</Text>
+                    <Text style={styles.bookmarkMeta}>{t('quran_no_note')}</Text>
                   )}
                   {bookmark.pageNumber ? (
                     <Text style={styles.bookmarkMeta}>
@@ -1249,7 +1251,7 @@ export function QuranScreen() {
                     style={styles.bookmarkActionButton}
                     onPress={() => handleGoToVerseBookmark(bookmark)}
                   >
-                    <Text style={styles.bookmarkActionText}>Go</Text>
+                    <Text style={styles.bookmarkActionText}>{t('quran_go')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.bookmarkActionButton}
@@ -1261,7 +1263,7 @@ export function QuranScreen() {
                     style={styles.bookmarkDeleteButton}
                     onPress={() => handleRemoveVerseBookmark(bookmark.id)}
                   >
-                    <Text style={styles.bookmarkDeleteText}>Remove</Text>
+                    <Text style={styles.bookmarkDeleteText}>{t('quran_remove')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -1269,18 +1271,18 @@ export function QuranScreen() {
           </View>
         ) : (
           <Text style={styles.helperText}>
-            Long-press a verse to add a bookmark and note.
+            {t('quran_bookmark_hint')}
           </Text>
         )}
       </SurfaceCard>
 
       <SurfaceCard style={styles.sectionSpacing}>
         <Text style={styles.cardEyebrow}>Choose Surah</Text>
-        <Text style={styles.selectorTitle}>Search</Text>
+        <Text style={styles.selectorTitle}>{t('quran_search')}</Text>
         <TextInput
           value={surahQuery}
           onChangeText={setSurahQuery}
-          placeholder="Search surah or number"
+          placeholder={t('quran_search_surah_placeholder')}
           placeholderTextColor={colors.muted}
           style={styles.searchInput}
           autoCapitalize="none"
@@ -1288,7 +1290,7 @@ export function QuranScreen() {
           returnKeyType="search"
         />
         {!loadingList && normalizedQuery && filteredSurahs.length === 0 ? (
-          <Text style={styles.searchHint}>No surahs match your search.</Text>
+          <Text style={styles.searchHint}>{t('quran_no_surah_matches')}</Text>
         ) : null}
         {loadingList ? (
           <ActivityIndicator size="small" color={colors.pine} />
@@ -1304,7 +1306,7 @@ export function QuranScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.sectionSpacing}>
-        <Text style={styles.cardEyebrow}>Verse Search</Text>
+        <Text style={styles.cardEyebrow}>{t('quran_verse_search')}</Text>
         <View style={styles.searchModeRow}>
           <TouchableOpacity
             style={[
@@ -1319,7 +1321,7 @@ export function QuranScreen() {
                 verseSearchMode === 'english' && styles.searchModeTextActive,
               ]}
             >
-              English
+              {t('quran_search_mode_english')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -1335,14 +1337,18 @@ export function QuranScreen() {
                 verseSearchMode === 'arabic' && styles.searchModeTextActive,
               ]}
             >
-              Arabic
+              {t('quran_search_mode_arabic')}
             </Text>
           </TouchableOpacity>
         </View>
         <TextInput
           value={verseQuery}
           onChangeText={setVerseQuery}
-          placeholder={`Search ${isArabicSearch ? 'Arabic' : 'English'} text`}
+          placeholder={
+            isArabicSearch
+              ? t('quran_search_placeholder_arabic')
+              : t('quran_search_placeholder_english')
+          }
           placeholderTextColor={colors.muted}
           style={styles.searchInput}
           autoCapitalize="none"
@@ -1352,7 +1358,7 @@ export function QuranScreen() {
         {verseSearching ? (
           <View style={styles.loadingRow}>
             <ActivityIndicator size="small" color={colors.pine} />
-            <Text style={styles.loadingText}>Searching...</Text>
+          <Text style={styles.loadingText}>{t('quran_searching')}</Text>
           </View>
         ) : null}
         {verseSearchError ? (
@@ -1362,7 +1368,7 @@ export function QuranScreen() {
         normalizedVerseQuery.length >= 2 &&
         verseResults.length === 0 &&
         !verseSearchError ? (
-          <Text style={styles.searchHint}>No matches found.</Text>
+          <Text style={styles.searchHint}>{t('quran_no_matches')}</Text>
         ) : null}
         {verseResults.length > 0 ? (
           <View style={styles.searchResults}>
@@ -1395,7 +1401,7 @@ export function QuranScreen() {
                   style={styles.searchResultButton}
                   onPress={() => handleGoToSearchResult(result)}
                 >
-                  <Text style={styles.searchResultButtonText}>Go</Text>
+                  <Text style={styles.searchResultButtonText}>{t('quran_go')}</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -1404,8 +1410,8 @@ export function QuranScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.sectionSpacing}>
-        <Text style={styles.cardEyebrow}>Audio</Text>
-        <Text style={styles.selectorTitle}>Reciter</Text>
+        <Text style={styles.cardEyebrow}>{t('quran_audio')}</Text>
+        <Text style={styles.selectorTitle}>{t('quran_reciter')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -1413,20 +1419,18 @@ export function QuranScreen() {
         >
           {RECITERS.map(renderReciterChip)}
         </ScrollView>
-        <Text style={styles.selectorTitle}>Playback Speed</Text>
+        <Text style={styles.selectorTitle}>{t('quran_playback_speed')}</Text>
         <View style={styles.selectorRow}>
           {SPEED_OPTIONS.map(renderSpeedChip)}
         </View>
-        <Text style={styles.selectorTitle}>A-B Repeat</Text>
-        <Text style={styles.selectorHint}>
-          Tap a verse, then set A and B to loop that range.
-        </Text>
+        <Text style={styles.selectorTitle}>{t('quran_repeat')}</Text>
+        <Text style={styles.selectorHint}>{t('quran_repeat_hint')}</Text>
         <View style={styles.repeatRow}>
           <TouchableOpacity style={styles.repeatChip} onPress={handleSetRepeatStart}>
-            <Text style={styles.repeatChipText}>Set A</Text>
+            <Text style={styles.repeatChipText}>{t('quran_set_a')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.repeatChip} onPress={handleSetRepeatEnd}>
-            <Text style={styles.repeatChipText}>Set B</Text>
+            <Text style={styles.repeatChipText}>{t('quran_set_b')}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.repeatChip, !repeatActive && styles.repeatChipDisabled]}
@@ -1439,16 +1443,16 @@ export function QuranScreen() {
                 !repeatActive && styles.repeatChipTextDisabled,
               ]}
             >
-              Clear
+              {t('quran_clear')}
             </Text>
           </TouchableOpacity>
         </View>
         <Text style={[styles.repeatStatus, repeatActive && styles.repeatStatusActive]}>
           {repeatActive
-            ? `Looping Ayah ${repeatStart} to ${repeatEnd}`
-            : 'Set A and B to enable looping.'}
+            ? `${t('quran_repeat_active')} ${repeatStart} to ${repeatEnd}`
+            : t('quran_repeat_status')}
         </Text>
-        <Text style={styles.selectorTitle}>Sleep Timer</Text>
+        <Text style={styles.selectorTitle}>{t('quran_sleep_timer')}</Text>
         <View style={styles.selectorRow}>
           <TouchableOpacity
             style={[
@@ -1498,8 +1502,8 @@ export function QuranScreen() {
 
   return (
     <Screen
-      title="Quran"
-      subtitle="Tanzil Arabic (Mushaf view)"
+      title={t('quran_title')}
+      subtitle={t('quran_subtitle')}
       scrollable={false}
       headerVisible={false}
       contentPadding={0}
@@ -1543,7 +1547,7 @@ export function QuranScreen() {
             loadingSurah ? (
               <View style={styles.emptyState}>
                 <ActivityIndicator size="small" color={colors.pine} />
-                <Text style={styles.emptyText}>Loading surah...</Text>
+                <Text style={styles.emptyText}>{t('quran_loading_surah')}</Text>
               </View>
             ) : (
               <View style={styles.emptyState}>
@@ -1561,7 +1565,7 @@ export function QuranScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Reader Settings</Text>
               <TouchableOpacity onPress={() => setControlsVisible(false)}>
-                <Text style={styles.modalClose}>Done</Text>
+                <Text style={styles.modalClose}>{t('quran_done')}</Text>
               </TouchableOpacity>
             </View>
             <ScrollView
@@ -1579,9 +1583,9 @@ export function QuranScreen() {
         >
           <SafeAreaView style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Verse Note</Text>
+              <Text style={styles.modalTitle}>{t('quran_verse_note')}</Text>
               <TouchableOpacity onPress={closeNoteModal}>
-                <Text style={styles.modalClose}>Done</Text>
+                <Text style={styles.modalClose}>{t('quran_done')}</Text>
               </TouchableOpacity>
             </View>
             <ScrollView
@@ -1606,9 +1610,9 @@ export function QuranScreen() {
                   ) : null}
                 </View>
               ) : (
-                <Text style={styles.helperText}>Select a verse to add a note.</Text>
+                <Text style={styles.helperText}>{t('quran_select_verse_note')}</Text>
               )}
-              <Text style={styles.noteLabel}>Note</Text>
+              <Text style={styles.noteLabel}>{t('quran_note')}</Text>
               <TextInput
                 value={noteDraft}
                 onChangeText={setNoteDraft}
@@ -1623,7 +1627,7 @@ export function QuranScreen() {
                   onPress={handleSaveVerseBookmark}
                   disabled={!selectedVerse}
                 >
-                  <Text style={styles.noteSaveText}>Save</Text>
+                  <Text style={styles.noteSaveText}>{t('quran_save')}</Text>
                 </TouchableOpacity>
                 {selectedVerseBookmark ? (
                   <TouchableOpacity
@@ -1633,16 +1637,16 @@ export function QuranScreen() {
                       closeNoteModal();
                     }}
                   >
-                    <Text style={styles.noteDeleteText}>Remove</Text>
+                    <Text style={styles.noteDeleteText}>{t('quran_remove')}</Text>
                   </TouchableOpacity>
                 ) : null}
               </View>
               <View style={styles.tafsirSection}>
-                <Text style={styles.noteLabel}>Tafsir</Text>
+                <Text style={styles.noteLabel}>{t('quran_tafsir')}</Text>
                 {tafsirLoading ? (
                   <View style={styles.loadingRow}>
                     <ActivityIndicator size="small" color={colors.pine} />
-                    <Text style={styles.loadingText}>Loading tafsir...</Text>
+                    <Text style={styles.loadingText}>{t('quran_loading_tafsir')}</Text>
                   </View>
                 ) : tafsirText ? (
                   <View style={styles.tafsirBody}>
@@ -1657,7 +1661,7 @@ export function QuranScreen() {
                     onPress={handleLoadTafsir}
                     disabled={!selectedVerse}
                   >
-                    <Text style={styles.tafsirButtonText}>Load tafsir</Text>
+                    <Text style={styles.tafsirButtonText}>{t('quran_load_tafsir')}</Text>
                   </TouchableOpacity>
                 )}
                 {tafsirError ? (

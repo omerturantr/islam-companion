@@ -17,11 +17,13 @@ import {
 import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
+import { useLanguage } from '../i18n/LanguageProvider';
 
 const JUMP_STORAGE_KEY = 'quran:jumpTarget';
 
 export function NotesScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const [verseBookmarks, setVerseBookmarks] = useState<VerseBookmark[]>([]);
@@ -74,23 +76,23 @@ export function NotesScreen() {
   };
 
   return (
-    <Screen title="Notes" subtitle="Your verse reflections">
+    <Screen title={t('app_notes')} subtitle={t('tabs_notes')}>
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.cardEyebrow}>Saved Notes</Text>
+        <Text style={styles.cardEyebrow}>{t('notes_saved')}</Text>
         {orderedNotes.length > 0 ? (
           <View style={styles.noteList}>
             {orderedNotes.map((note) => (
               <View key={note.id} style={styles.noteCard}>
                 <View style={styles.noteHeader}>
                   <Text style={styles.noteTitle}>
-                    {note.surahNameEnglish || `Surah ${note.surahId}`} • Ayah{' '}
-                    {note.ayahNumberInSurah}
+                    {note.surahNameEnglish || `${t('notes_surah')} ${note.surahId}`} •{' '}
+                    {t('notes_ayah')} {note.ayahNumberInSurah}
                   </Text>
                   <TouchableOpacity
                     style={styles.noteGoButton}
                     onPress={() => handleGoToNote(note)}
                   >
-                    <Text style={styles.noteGoText}>Go</Text>
+                    <Text style={styles.noteGoText}>{t('notes_go')}</Text>
                   </TouchableOpacity>
                 </View>
                 {note.surahNameArabic ? (
@@ -107,16 +109,14 @@ export function NotesScreen() {
                     style={styles.noteRemoveButton}
                     onPress={() => handleRemoveNote(note.id)}
                   >
-                    <Text style={styles.noteRemoveText}>Remove</Text>
+                    <Text style={styles.noteRemoveText}>{t('notes_remove')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ))}
           </View>
         ) : (
-          <Text style={styles.helperText}>
-            No notes yet. Long-press a verse in the Quran tab to add one.
-          </Text>
+          <Text style={styles.helperText}>{t('notes_empty')}</Text>
         )}
       </SurfaceCard>
     </Screen>

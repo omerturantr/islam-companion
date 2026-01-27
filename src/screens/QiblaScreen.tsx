@@ -9,10 +9,8 @@ import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
 import { getCardinalDirection, getQiblaBearing } from '../utils/qibla';
+import { useLanguage } from '../i18n/LanguageProvider';
 
-const LOCATION_ERROR = 'Unable to get your location.';
-const LOCATION_DISABLED = 'Location services are disabled.';
-const PERMISSION_REQUIRED = 'Enable location permission to show Qibla direction.';
 const HEADING_SMOOTHING = 0.12;
 const HEADING_THRESHOLD = 1.2;
 const HEADING_DEADBAND = 2.5;
@@ -35,6 +33,7 @@ const getDeadband = (accuracy: number | null) => {
 
 export function QiblaScreen() {
   const { colors } = useTheme();
+  const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [permissionStatus, setPermissionStatus] = useState<Location.PermissionStatus | null>(null);
@@ -63,7 +62,7 @@ export function QiblaScreen() {
     ? `${coords.latitude.toFixed(4)}, ${coords.longitude.toFixed(4)}`
     : `${DEFAULT_LOCATION.name} (default)`;
 
-  const headingLabel = heading !== null ? `${Math.round(heading)} deg` : 'Heading unavailable';
+  const headingLabel = heading !== null ? `${Math.round(heading)} deg` : t('qibla_heading_unavailable');
 
   const stopTracking = () => {
     watchPositionRef.current?.remove();
@@ -81,7 +80,7 @@ export function QiblaScreen() {
     try {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
       if (!servicesEnabled) {
-        setError(LOCATION_DISABLED);
+        setError(t('qibla_location_disabled'));
         setLoading(false);
         return;
       }
@@ -89,7 +88,7 @@ export function QiblaScreen() {
       const { status } = await Location.requestForegroundPermissionsAsync();
       setPermissionStatus(status);
       if (status !== 'granted') {
-        setError(PERMISSION_REQUIRED);
+        setError(t('qibla_permission_required'));
         setLoading(false);
         return;
       }
@@ -141,7 +140,7 @@ export function QiblaScreen() {
         setHeading(next);
       });
     } catch (err) {
-      setError(LOCATION_ERROR);
+      setError(t('qibla_location_error'));
     } finally {
       setLoading(false);
     }
@@ -156,36 +155,34 @@ export function QiblaScreen() {
   }, []);
 
   return (
-    <Screen title="Qibla" subtitle="Live direction using your location and compass">
+    <Screen title={t('app_qibla')} subtitle={t('tabs_qibla')}>
       <SurfaceCard style={styles.cardSpacing}>
-        <Text style={styles.cardEyebrow}>Direction</Text>
+        <Text style={styles.cardEyebrow}>{t('qibla_direction')}</Text>
         <View style={styles.directionRow}>
           <Text style={styles.bearingValue}>{Math.round(qiblaBearing)} deg</Text>
           <Text style={styles.cardinalText}>{cardinal}</Text>
         </View>
-        <Text style={styles.metaText}>Location: {locationLabel}</Text>
-        <Text style={styles.metaText}>Heading: {headingLabel}</Text>
+        <Text style={styles.metaText}>{t('qibla_location')}: {locationLabel}</Text>
+        <Text style={styles.metaText}>{t('qibla_heading')}: {headingLabel}</Text>
         {heading === null ? (
-          <Text style={styles.helperText}>
-            Move your device in a figure-eight to calibrate the compass.
-          </Text>
+          <Text style={styles.helperText}>{t('qibla_calibrate')}</Text>
         ) : null}
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.actionButton} onPress={startTracking}>
             <Text style={styles.actionButtonText}>
-              {permissionStatus === 'granted' ? 'Refresh location' : 'Enable location'}
+              {permissionStatus === 'granted' ? t('qibla_refresh') : t('qibla_enable')}
             </Text>
           </TouchableOpacity>
         </View>
       </SurfaceCard>
 
       <SurfaceCard>
-        <Text style={styles.cardEyebrow}>Compass</Text>
+        <Text style={styles.cardEyebrow}>{t('qibla_compass')}</Text>
         {loading ? (
           <View style={styles.loadingRow}>
             <ActivityIndicator size="small" color={colors.pine} />
-            <Text style={styles.loadingText}>Finding direction...</Text>
+            <Text style={styles.loadingText}>{t('qibla_finding')}</Text>
           </View>
         ) : (
           <View style={styles.compassWrap}>
@@ -199,7 +196,7 @@ export function QiblaScreen() {
               <View style={styles.compassCenter} />
             </View>
             <Text style={styles.compassHint}>
-              Rotate your device until the arrow points straight up.
+              {t('qibla_hint')}
             </Text>
           </View>
         )}

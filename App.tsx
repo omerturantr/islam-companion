@@ -16,6 +16,7 @@ import {
 import { Amiri_400Regular, Amiri_700Bold } from '@expo-google-fonts/amiri';
 import { AppTabs } from './src/navigation/AppTabs';
 import { ThemeProvider, useTheme } from './src/theme/theme';
+import { LanguageProvider } from './src/i18n/LanguageProvider';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -79,9 +80,11 @@ export default function App() {
   });
 
   return (
-    <ThemeProvider>
-      <AppShell fontsLoaded={fontsLoaded} />
-    </ThemeProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AppShell fontsLoaded={fontsLoaded} />
+      </ThemeProvider>
+    </LanguageProvider>
   );
 }
 
