@@ -65,7 +65,9 @@ export function DuasScreen() {
               {dua.translationTranslations?.[language] ?? dua.translation}
             </Text>
             {dua.source ? (
-              <Text style={styles.duaSource}>Source: {dua.source}</Text>
+              <Text style={styles.duaSource}>
+                {t('duas_source')}: {dua.source}
+              </Text>
             ) : null}
           </SurfaceCard>
         ))}
