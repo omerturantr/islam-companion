@@ -10,7 +10,7 @@ import { useLanguage } from '../i18n/LanguageProvider';
 
 export function DuasScreen() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState('');
 
@@ -20,9 +20,12 @@ export function DuasScreen() {
       return duas;
     }
     return duas.filter((dua) => {
+      const title = dua.titleTranslations?.[language] ?? dua.title;
+      const translation =
+        dua.translationTranslations?.[language] ?? dua.translation;
       const haystack = [
-        dua.title,
-        dua.translation,
+        title,
+        translation,
         dua.arabic,
         dua.source ?? '',
       ]
@@ -30,7 +33,7 @@ export function DuasScreen() {
         .toLowerCase();
       return haystack.includes(normalizedQuery);
     });
-  }, [normalizedQuery]);
+  }, [language, normalizedQuery]);
 
   return (
     <Screen title={t('app_duas')} subtitle={t('tabs_duas')}>
@@ -54,9 +57,13 @@ export function DuasScreen() {
       <View>
         {filteredDuas.map((dua) => (
           <SurfaceCard key={dua.id} style={styles.cardSpacing}>
-            <Text style={styles.duaTitle}>{dua.title}</Text>
+            <Text style={styles.duaTitle}>
+              {dua.titleTranslations?.[language] ?? dua.title}
+            </Text>
             <Text style={styles.duaArabic}>{dua.arabic}</Text>
-            <Text style={styles.duaTranslation}>{dua.translation}</Text>
+            <Text style={styles.duaTranslation}>
+              {dua.translationTranslations?.[language] ?? dua.translation}
+            </Text>
             {dua.source ? (
               <Text style={styles.duaSource}>Source: {dua.source}</Text>
             ) : null}
