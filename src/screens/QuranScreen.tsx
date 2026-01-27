@@ -496,6 +496,17 @@ export function QuranScreen() {
     );
   }, [selectedVerse, verseBookmarkMap]);
 
+  const previousSurahId = useMemo(() => {
+    if (surahs.length === 0 || !selectedSurahId) {
+      return null;
+    }
+    const index = surahs.findIndex((surah) => surah.id === selectedSurahId);
+    if (index <= 0) {
+      return null;
+    }
+    return surahs[index - 1]?.id ?? null;
+  }, [surahs, selectedSurahId]);
+
   const handleEndReached = () => {
     if (!nextSurahId) {
       return;
@@ -513,21 +524,34 @@ export function QuranScreen() {
     setSelectedSurahId(nextSurahId);
   };
 
-  const handleMomentumEnd = () => {
-    if (!nextSurahId) {
-      return;
-    }
-    if (pages.length === 0 || pageIndex !== pages.length - 1) {
-      return;
-    }
-    const lastAdvance = lastAutoAdvanceRef.current;
-    if (lastAdvance && lastAdvance.surahId === selectedSurahId) {
-      if (Date.now() - lastAdvance.at < 1200) {
-        return;
+  const handleMomentumEnd = (event: any) => {
+    const offsetX = event?.nativeEvent?.contentOffset?.x ?? 0;
+    const maxOffset = (pages.length - 1) * pageWidth;
+    const atEnd = pages.length > 0 && offsetX >= maxOffset - pageWidth * 0.25;
+    const atStart = pages.length > 0 && offsetX <= pageWidth * 0.25;
+
+    if (atEnd && nextSurahId) {
+      const lastAdvance = lastAutoAdvanceRef.current;
+      if (lastAdvance && lastAdvance.surahId === selectedSurahId) {
+        if (Date.now() - lastAdvance.at < 1200) {
+          return;
+        }
       }
+      lastAutoAdvanceRef.current = { surahId: selectedSurahId, at: Date.now() };
+      setSelectedSurahId(nextSurahId);
+      return;
     }
-    lastAutoAdvanceRef.current = { surahId: selectedSurahId, at: Date.now() };
-    setSelectedSurahId(nextSurahId);
+
+    if (atStart && previousSurahId) {
+      const lastAdvance = lastAutoAdvanceRef.current;
+      if (lastAdvance && lastAdvance.surahId === selectedSurahId) {
+        if (Date.now() - lastAdvance.at < 1200) {
+          return;
+        }
+      }
+      lastAutoAdvanceRef.current = { surahId: selectedSurahId, at: Date.now() };
+      setSelectedSurahId(previousSurahId);
+    }
   };
 
   useEffect(() => {
