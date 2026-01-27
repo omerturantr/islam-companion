@@ -113,7 +113,8 @@ export function CalendarScreen() {
   }, [location]);
 
   const locationLabel = location.name || formatCoordinates(location.latitude, location.longitude);
-  const subtitle = `${locationLabel} - ${formatDate(new Date())}`;
+  const locale = t('locale');
+  const subtitle = `${locationLabel} - ${formatDate(new Date(), locale)}`;
   const todayKey = new Date().toDateString();
 
   return (
@@ -140,7 +141,10 @@ export function CalendarScreen() {
         <View style={styles.calendarList}>
           {schedule.map((item) => {
             const timesText = item.entries
-              .map((entry) => `${labelForId(entry.id, entry.label)} ${formatTime(entry.time)}`)
+              .map(
+                (entry) =>
+                  `${labelForId(entry.id, entry.label)} ${formatTime(entry.time, locale)}`,
+              )
               .join(' · ');
             const isToday = item.date.toDateString() === todayKey;
             return (
@@ -149,7 +153,7 @@ export function CalendarScreen() {
                 style={[styles.calendarRow, isToday && styles.calendarRowToday]}
               >
                 <Text style={styles.calendarDate}>
-                  {formatDate(item.date)}
+                  {formatDate(item.date, locale)}
                 </Text>
                 <Text style={styles.calendarTimes}>{timesText}</Text>
               </View>

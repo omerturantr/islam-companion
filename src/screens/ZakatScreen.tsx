@@ -64,12 +64,12 @@ const parseAmount = (value: string) => {
 
 const formatAmount = (value: number) => value.toFixed(2);
 
-const formatDate = (value: string) => {
+const formatDate = (value: string, locale: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return 'Unknown date';
   }
-  return date.toISOString().slice(0, 10);
+  return date.toLocaleDateString(locale);
 };
 
 const createId = () =>
@@ -250,6 +250,7 @@ export function ZakatScreen() {
   };
 
   const currencyLabel = currency.trim();
+  const locale = t('locale');
   const formatCurrencyValue = (value: number) =>
     currencyLabel ? `${currencyLabel} ${formatAmount(value)}` : formatAmount(value);
 
@@ -414,7 +415,7 @@ export function ZakatScreen() {
                       {formatAmount(profile.nisab)}
                     </Text>
                     <Text style={styles.profileMeta}>
-                      Updated {formatDate(profile.updatedAt)}
+                      Updated {formatDate(profile.updatedAt, locale)}
                     </Text>
                   </View>
                   <View style={styles.profileActions}>

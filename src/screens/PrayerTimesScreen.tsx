@@ -82,6 +82,7 @@ const schedulePrayerNotifications = async (
   settings: NotificationSettings,
   accentColor: string,
   getLabel: (id: string, fallback: string) => string,
+  locale: string,
 ) => {
   if (days.length === 0) {
     return;
@@ -148,7 +149,7 @@ const schedulePrayerNotifications = async (
       Notifications.scheduleNotificationAsync({
         content: {
           title: `${label} in ${advanceMinutes} minutes`,
-          body: `Time for ${label} at ${formatTime(entry.time)}.`,
+          body: `Time for ${label} at ${formatTime(entry.time, locale)}.`,
           sound: 'default',
           channelId: PRAYER_REMINDER_CHANNEL,
         },
@@ -293,8 +294,9 @@ export function PrayerTimesScreen() {
       notificationSettings,
       colors.pine,
       labelForId,
+      locale,
     ).catch(() => undefined);
-  }, [scheduleDays, notificationSettings, colors.pine, labelForId]);
+  }, [scheduleDays, notificationSettings, colors.pine, labelForId, locale]);
 
   const { entries, next, methodLabel, madhhabLabel } = useMemo(
     () => getPrayerTimes(now, location),
@@ -309,7 +311,8 @@ export function PrayerTimesScreen() {
 
   const locationLabel = location.name || formatCoordinates(location.latitude, location.longitude);
   const locationDetails = formatCoordinates(location.latitude, location.longitude);
-  const subtitle = `${locationLabel} - ${formatDate(now)}`;
+  const locale = t('locale');
+  const subtitle = `${locationLabel} - ${formatDate(now, locale)}`;
 
   const detectLocation = async () => {
     setLocationLoading(true);
@@ -379,7 +382,7 @@ export function PrayerTimesScreen() {
               {labelForId(next.id, next.label)}
             </Text>
             <Text style={styles.nextTime}>
-              {formatTime(next.time)}
+              {formatTime(next.time, locale)}
               {next.isTomorrow ? ` (${t('prayer_tomorrow')})` : ''}
             </Text>
             <View style={styles.countdownRow}>
@@ -448,7 +451,7 @@ export function PrayerTimesScreen() {
                     entry.id === nextEntryId && styles.timeValueNext,
                   ]}
                 >
-                  {formatTime(entry.time)}
+                  {formatTime(entry.time, locale)}
                 </Text>
               </View>
           ))}
