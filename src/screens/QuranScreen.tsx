@@ -513,6 +513,23 @@ export function QuranScreen() {
     setSelectedSurahId(nextSurahId);
   };
 
+  const handleMomentumEnd = () => {
+    if (!nextSurahId) {
+      return;
+    }
+    if (pages.length === 0 || pageIndex !== pages.length - 1) {
+      return;
+    }
+    const lastAdvance = lastAutoAdvanceRef.current;
+    if (lastAdvance && lastAdvance.surahId === selectedSurahId) {
+      if (Date.now() - lastAdvance.at < 1200) {
+        return;
+      }
+    }
+    lastAutoAdvanceRef.current = { surahId: selectedSurahId, at: Date.now() };
+    setSelectedSurahId(nextSurahId);
+  };
+
   useEffect(() => {
     Audio.setAudioModeAsync({ playsInSilentModeIOS: true }).catch(() => undefined);
   }, []);
@@ -1565,6 +1582,7 @@ export function QuranScreen() {
           viewabilityConfig={viewabilityConfig}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.4}
+          onMomentumScrollEnd={handleMomentumEnd}
           showsHorizontalScrollIndicator={false}
           snapToInterval={pageWidth}
           decelerationRate="fast"
