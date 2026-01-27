@@ -264,6 +264,9 @@ export function QuranScreen() {
   const suppressPressRef = useRef(0);
   const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRequestRef = useRef(0);
+  const lastAutoAdvanceRef = useRef<{ surahId: number; at: number } | null>(
+    null,
+  );
   const [pendingVerseJump, setPendingVerseJump] = useState<{
     surahId: number;
     ayahNumberInSurah: number;
@@ -408,6 +411,16 @@ export function QuranScreen() {
 
     return idMatch || nameMatch || translationMatch || arabicMatch;
   });
+  const nextSurahId = useMemo(() => {
+    if (surahs.length === 0 || !selectedSurahId) {
+      return null;
+    }
+    const index = surahs.findIndex((surah) => surah.id === selectedSurahId);
+    if (index < 0 || index + 1 >= surahs.length) {
+      return null;
+    }
+    return surahs[index + 1]?.id ?? null;
+  }, [surahs, selectedSurahId]);
 
   const pages = useMemo(
     () => buildPages(activeSurah?.ayahs ?? []),
@@ -482,6 +495,23 @@ export function QuranScreen() {
       ) ?? null
     );
   }, [selectedVerse, verseBookmarkMap]);
+
+  const handleEndReached = () => {
+    if (!nextSurahId) {
+      return;
+    }
+    if (pages.length === 0 || pageIndex !== pages.length - 1) {
+      return;
+    }
+    const lastAdvance = lastAutoAdvanceRef.current;
+    if (lastAdvance && lastAdvance.surahId === selectedSurahId) {
+      if (Date.now() - lastAdvance.at < 1200) {
+        return;
+      }
+    }
+    lastAutoAdvanceRef.current = { surahId: selectedSurahId, at: Date.now() };
+    setSelectedSurahId(nextSurahId);
+  };
 
   useEffect(() => {
     Audio.setAudioModeAsync({ playsInSilentModeIOS: true }).catch(() => undefined);
@@ -1533,6 +1563,8 @@ export function QuranScreen() {
           initialScrollIndex={pages.length > 0 ? 0 : undefined}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.4}
           showsHorizontalScrollIndicator={false}
           snapToInterval={pageWidth}
           decelerationRate="fast"
