@@ -81,6 +81,7 @@ const schedulePrayerNotifications = async (
   days: DaySchedule[],
   settings: NotificationSettings,
   accentColor: string,
+  getLabel: (id: string, fallback: string) => string,
 ) => {
   if (days.length === 0) {
     return;
@@ -136,6 +137,7 @@ const schedulePrayerNotifications = async (
         return;
       }
 
+      const label = getLabel(entry.id, entry.label);
       const triggerDate = new Date(
         entry.time.getTime() - advanceMinutes * 60 * 1000,
       );
@@ -145,8 +147,8 @@ const schedulePrayerNotifications = async (
 
       Notifications.scheduleNotificationAsync({
         content: {
-          title: `${entry.label} in ${advanceMinutes} minutes`,
-          body: `Time for ${entry.label} at ${formatTime(entry.time)}.`,
+          title: `${label} in ${advanceMinutes} minutes`,
+          body: `Time for ${label} at ${formatTime(entry.time)}.`,
           sound: 'default',
           channelId: PRAYER_REMINDER_CHANNEL,
         },
@@ -159,8 +161,8 @@ const schedulePrayerNotifications = async (
 
       Notifications.scheduleNotificationAsync({
         content: {
-          title: `${entry.label} time`,
-          body: `It is time for ${entry.label}.`,
+          title: `${label} time`,
+          body: `It is time for ${label}.`,
           sound: 'default',
           channelId: PRAYER_ADHAN_CHANNEL,
         },
@@ -174,7 +176,7 @@ const schedulePrayerNotifications = async (
         if (noteTrigger.getTime() > nowTimestamp) {
           Notifications.scheduleNotificationAsync({
             content: {
-              title: `${entry.label} reminder`,
+              title: `${label} reminder`,
               body: POST_PRAYER_MESSAGE,
               sound: 'default',
               channelId: PRAYER_REMINDER_CHANNEL,
@@ -191,6 +193,27 @@ export function PrayerTimesScreen() {
   const { colors } = useTheme();
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const labelForId = useMemo(
+    () => (id: string, fallback: string) => {
+      switch (id) {
+        case 'fajr':
+          return t('prayer_fajr');
+        case 'sunrise':
+          return t('prayer_sunrise');
+        case 'dhuhr':
+          return t('prayer_dhuhr');
+        case 'asr':
+          return t('prayer_asr');
+        case 'maghrib':
+          return t('prayer_maghrib');
+        case 'isha':
+          return t('prayer_isha');
+        default:
+          return fallback;
+      }
+    },
+    [t],
+  );
 
   const [now, setNow] = useState(() => new Date());
   const [location, setLocation] = useState<PrayerLocation>(DEFAULT_LOCATION);
@@ -269,21 +292,16 @@ export function PrayerTimesScreen() {
       scheduleDays,
       notificationSettings,
       colors.pine,
+      labelForId,
     ).catch(() => undefined);
-  }, [scheduleDays, notificationSettings, colors.pine]);
+  }, [scheduleDays, notificationSettings, colors.pine, labelForId]);
 
   const { entries, next, methodLabel, madhhabLabel } = useMemo(
     () => getPrayerTimes(now, location),
     [now, location],
   );
 
-  const nextEntryId = useMemo(() => {
-    if (!next) {
-      return null;
-    }
-    const match = entries.find((entry) => entry.label === next.label);
-    return match?.id ?? null;
-  }, [entries, next]);
+  const nextEntryId = next?.id ?? null;
 
   const countdown = next
     ? formatCountdown(next.time.getTime() - now.getTime())
@@ -357,7 +375,9 @@ export function PrayerTimesScreen() {
         <Text style={styles.nextPrayerLabel}>{t('prayer_next')}</Text>
         {next ? (
           <>
-            <Text style={styles.nextPrayer}>{next.label}</Text>
+            <Text style={styles.nextPrayer}>
+              {labelForId(next.id, next.label)}
+            </Text>
             <Text style={styles.nextTime}>
               {formatTime(next.time)}
               {next.isTomorrow ? ` (${t('prayer_tomorrow')})` : ''}
@@ -419,7 +439,7 @@ export function PrayerTimesScreen() {
                     entry.id === nextEntryId && styles.timeLabelNext,
                   ]}
                 >
-                  {entry.label}
+                  {labelForId(entry.id, entry.label)}
                 </Text>
                 <Text
                   style={[

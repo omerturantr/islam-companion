@@ -14,19 +14,40 @@ import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
 import { useLanguage } from '../i18n/LanguageProvider';
 
-const PRAYER_LABELS: Record<PrayerId, string> = {
-  fajr: 'Fajr',
-  sunrise: 'Sunrise',
-  dhuhr: 'Dhuhr',
-  asr: 'Asr',
-  maghrib: 'Maghrib',
-  isha: 'Isha',
-};
+const PRAYER_IDS: PrayerId[] = [
+  'fajr',
+  'sunrise',
+  'dhuhr',
+  'asr',
+  'maghrib',
+  'isha',
+];
 
 export function SettingsScreen() {
   const { colors, mode, setMode } = useTheme();
   const { t, language, setLanguage } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const prayerLabel = useMemo(
+    () => (id: PrayerId) => {
+      switch (id) {
+        case 'fajr':
+          return t('prayer_fajr');
+        case 'sunrise':
+          return t('prayer_sunrise');
+        case 'dhuhr':
+          return t('prayer_dhuhr');
+        case 'asr':
+          return t('prayer_asr');
+        case 'maghrib':
+          return t('prayer_maghrib');
+        case 'isha':
+          return t('prayer_isha');
+        default:
+          return id;
+      }
+    },
+    [t],
+  );
 
   const [settings, setSettings] = useState<NotificationSettings>(
     DEFAULT_NOTIFICATION_SETTINGS,
@@ -133,9 +154,9 @@ export function SettingsScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        {(Object.keys(PRAYER_LABELS) as PrayerId[]).map((key) => (
+        {PRAYER_IDS.map((key) => (
           <View key={key} style={styles.rowBetween}>
-            <Text style={styles.labelText}>{PRAYER_LABELS[key]}</Text>
+            <Text style={styles.labelText}>{prayerLabel(key)}</Text>
             <Switch
               trackColor={{ false: colors.border, true: colors.oasis }}
               thumbColor={settings.prayers[key] ? colors.pine : colors.parchment}

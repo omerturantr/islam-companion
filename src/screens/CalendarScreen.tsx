@@ -56,6 +56,27 @@ export function CalendarScreen() {
   const { t } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const labelForId = useMemo(
+    () => (id: string, fallback: string) => {
+      switch (id) {
+        case 'fajr':
+          return t('prayer_fajr');
+        case 'sunrise':
+          return t('prayer_sunrise');
+        case 'dhuhr':
+          return t('prayer_dhuhr');
+        case 'asr':
+          return t('prayer_asr');
+        case 'maghrib':
+          return t('prayer_maghrib');
+        case 'isha':
+          return t('prayer_isha');
+        default:
+          return fallback;
+      }
+    },
+    [t],
+  );
 
   const [location, setLocation] = useState<PrayerLocation>(DEFAULT_LOCATION);
   const [schedule, setSchedule] = useState<DaySchedule[]>([]);
@@ -119,7 +140,7 @@ export function CalendarScreen() {
         <View style={styles.calendarList}>
           {schedule.map((item) => {
             const timesText = item.entries
-              .map((entry) => `${entry.label} ${formatTime(entry.time)}`)
+              .map((entry) => `${labelForId(entry.id, entry.label)} ${formatTime(entry.time)}`)
               .join(' · ');
             const isToday = item.date.toDateString() === todayKey;
             return (

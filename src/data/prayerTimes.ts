@@ -13,6 +13,7 @@ export type PrayerTimeEntry = {
 };
 
 export type NextPrayer = {
+  id: string;
   label: string;
   time: Date;
   isTomorrow: boolean;
@@ -43,6 +44,25 @@ const prayerLabel = (prayer: Prayer) => {
       return 'Isha';
     default:
       return 'Fajr';
+  }
+};
+
+const prayerId = (prayer: Prayer) => {
+  switch (prayer) {
+    case Prayer.Fajr:
+      return 'fajr';
+    case Prayer.Sunrise:
+      return 'sunrise';
+    case Prayer.Dhuhr:
+      return 'dhuhr';
+    case Prayer.Asr:
+      return 'asr';
+    case Prayer.Maghrib:
+      return 'maghrib';
+    case Prayer.Isha:
+      return 'isha';
+    default:
+      return 'fajr';
   }
 };
 
@@ -81,6 +101,7 @@ export const getPrayerTimes = (
       madhhabLabel,
       entries,
       next: {
+        id: 'fajr',
         label: 'Fajr',
         time: tomorrowTimes.fajr,
         isTomorrow: true,
@@ -94,6 +115,7 @@ export const getPrayerTimes = (
     madhhabLabel,
     entries,
     next: {
+      id: prayerId(nextPrayer),
       label: prayerLabel(nextPrayer),
       time: prayerTimes.timeForPrayer(nextPrayer) ?? entries[0].time,
       isTomorrow: false,
