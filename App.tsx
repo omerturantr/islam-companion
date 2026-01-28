@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import {
@@ -82,7 +83,9 @@ export default function App() {
   return (
     <LanguageProvider>
       <ThemeProvider>
-        <AppShell fontsLoaded={fontsLoaded} />
+        <SafeAreaProvider>
+          <AppShell fontsLoaded={fontsLoaded} />
+        </SafeAreaProvider>
       </ThemeProvider>
     </LanguageProvider>
   );

@@ -408,9 +408,8 @@ export function QuranScreen() {
       : t('quran_select_surah');
   const pageWidth = Math.max(1, width);
   const pageTypography = useMemo(() => {
-    const fallback = { fontSize: 22, lineHeight: 34 };
     if (pageBodyHeight <= 0) {
-      return fallback;
+      return null;
     }
     const targetLines = 16;
     const rawLineHeight = Math.floor(pageBodyHeight / targetLines);
@@ -1118,8 +1117,14 @@ export function QuranScreen() {
                 }
               }}
             >
-              {page ? (
-                <Text style={[styles.pageText, pageTypography]}>
+                {page ? (
+                  <Text
+                    style={[
+                      styles.pageText,
+                      pageTypography,
+                      !pageTypography && styles.pageTextHidden,
+                    ]}
+                  >
                   {page.ayahs.map((ayah) => {
                     let ayahText = ayah.textArabic;
                     if (showBismillah && ayah.numberInSurah === 1) {
@@ -1903,6 +1908,9 @@ const createStyles = (
     textAlign: 'right',
     writingDirection: 'rtl',
     lineHeight: 44,
+  },
+  pageTextHidden: {
+    opacity: 0,
   },
   ayahSpan: {
     fontFamily: fonts.arabic,

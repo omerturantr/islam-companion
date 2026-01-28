@@ -15,7 +15,15 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Allow access to your location to calculate Qibla direction and local prayer times."
+        "NSLocationWhenInUseUsageDescription": "Allow access to your location to calculate Qibla direction and local prayer times.",
+        "NSAppTransportSecurity": {
+          "NSExceptionDomains": {
+            "philae.shoutca.st": {
+              "NSExceptionAllowsInsecureHTTPLoads": true,
+              "NSIncludesSubdomains": true
+            }
+          }
+        }
       }
     },
     "android": {
@@ -23,6 +31,7 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
       ],
+      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

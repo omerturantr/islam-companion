@@ -32,11 +32,8 @@ import { formatDate, formatTime } from '../utils/format';
 import { useLanguage } from '../i18n/LanguageProvider';
 
 const NOTIFICATION_ADVANCE_MINUTES = 15;
-const POST_PRAYER_NOTE_MINUTES = 1;
-const POST_PRAYER_MESSAGE = 'Have you read Huwallahüllezi?';
 const SCHEDULE_DAYS = 7;
 const PRAYER_REMINDER_CHANNEL = 'prayer-reminders';
-const PRAYER_ADHAN_CHANNEL = 'prayer-adhan';
 const LOCATION_STORAGE_KEY = 'settings:location';
 
 type DaySchedule = {
@@ -109,16 +106,6 @@ const schedulePrayerNotifications = async (
         sound: 'default',
       },
     );
-    await Notifications.setNotificationChannelAsync(
-      PRAYER_ADHAN_CHANNEL,
-      {
-        name: 'Prayer Adhan',
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 400, 300, 400],
-        lightColor: accentColor,
-        sound: 'default',
-      },
-    );
   }
 
   await Notifications.cancelAllScheduledNotificationsAsync();
@@ -155,37 +142,6 @@ const schedulePrayerNotifications = async (
         },
         trigger: triggerDate,
       }).catch(() => undefined);
-
-      if (entry.time.getTime() <= nowTimestamp) {
-        return;
-      }
-
-      Notifications.scheduleNotificationAsync({
-        content: {
-          title: `${label} time`,
-          body: `It is time for ${label}.`,
-          sound: 'default',
-          channelId: PRAYER_ADHAN_CHANNEL,
-        },
-        trigger: entry.time,
-      }).catch(() => undefined);
-
-      if (entry.id === 'fajr' || entry.id === 'maghrib') {
-        const noteTrigger = new Date(
-          entry.time.getTime() + POST_PRAYER_NOTE_MINUTES * 60 * 1000,
-        );
-        if (noteTrigger.getTime() > nowTimestamp) {
-          Notifications.scheduleNotificationAsync({
-            content: {
-              title: `${label} reminder`,
-              body: POST_PRAYER_MESSAGE,
-              sound: 'default',
-              channelId: PRAYER_REMINDER_CHANNEL,
-            },
-            trigger: noteTrigger,
-          }).catch(() => undefined);
-        }
-      }
     });
   });
 };
