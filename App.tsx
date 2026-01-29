@@ -18,6 +18,7 @@ import { Amiri_400Regular, Amiri_700Bold } from '@expo-google-fonts/amiri';
 import { AppTabs } from './src/navigation/AppTabs';
 import { ThemeProvider, useTheme } from './src/theme/theme';
 import { LanguageProvider } from './src/i18n/LanguageProvider';
+import { DailyWisdomModal } from './src/components/DailyWisdomModal';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -66,6 +67,7 @@ function AppShell({ fontsLoaded }: AppShellProps) {
         <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
         <AppTabs />
       </NavigationContainer>
+      <DailyWisdomModal enabled={fontsLoaded} />
     </GestureHandlerRootView>
   );
 }
