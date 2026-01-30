@@ -21,6 +21,7 @@ import { QiblaScreen } from '../screens/QiblaScreen';
 import { DuasScreen } from '../screens/DuasScreen';
 import { ZakatScreen } from '../screens/ZakatScreen';
 import { TasbihScreen } from '../screens/TasbihScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -36,6 +37,7 @@ const iconForRoute: Record<string, keyof typeof Ionicons.glyphMap> = {
   Duas: 'heart-outline',
   Zakat: 'calculator-outline',
   Tasbih: 'infinite-outline',
+  Settings: 'settings-outline',
 };
 
 const LIVE_QURAN_STREAM_URL = 'http://philae.shoutca.st:8222/Quran';
@@ -198,6 +200,15 @@ export function AppTabs() {
                 <Ionicons name="menu-outline" color={colors.night} size={26} />
               </Pressable>
             ),
+          }}
+        />
+        <Tab.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{
+            tabBarLabel: t('app_settings'),
+            tabBarButton: () => null,
+            tabBarItemStyle: styles.hiddenTabItem,
           }}
         />
         <Tab.Screen

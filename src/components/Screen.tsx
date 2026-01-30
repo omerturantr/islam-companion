@@ -34,8 +34,8 @@ export function Screen({
   contentPadding = spacing.lg,
   showSettings = true,
 }: ScreenProps) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { colors, mode } = useTheme();
+  const styles = useMemo(() => createStyles(colors, mode), [colors, mode]);
   const navigation = useNavigation<any>();
   const orbOneAnim = useRef(new Animated.Value(0)).current;
   const orbTwoAnim = useRef(new Animated.Value(0)).current;
@@ -252,7 +252,7 @@ export function Screen({
                   <Ionicons
                     name="settings-outline"
                     size={22}
-                    color={colors.night}
+                    color={mode === 'dark' ? colors.sand : colors.night}
                   />
                 </Pressable>
               ) : null}
@@ -273,14 +273,17 @@ export function Screen({
   );
 }
 
-const createStyles = (colors: {
+const createStyles = (
+  colors: {
   sand: string;
   oasis: string;
   gold: string;
   pine: string;
   night: string;
   muted: string;
-}) =>
+},
+  mode: 'light' | 'dark',
+) =>
   StyleSheet.create({
     safe: {
       flex: 1,
@@ -344,7 +347,7 @@ const createStyles = (colors: {
       borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.oasis,
+      backgroundColor: mode === 'dark' ? colors.pine : colors.oasis,
     },
     title: {
       fontFamily: fonts.displayBold,
