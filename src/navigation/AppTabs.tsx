@@ -12,6 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Audio } from 'expo-av';
+import { BlurView } from 'expo-blur';
 import { PrayerTimesScreen } from '../screens/PrayerTimesScreen';
 import { CalendarScreen } from '../screens/CalendarScreen';
 import { QuranScreen } from '../screens/QuranScreen';
@@ -170,6 +171,16 @@ export function AppTabs() {
           options={{ tabBarLabel: t('app_notes') }}
         />
         <Tab.Screen
+          name="Qibla"
+          component={QiblaScreen}
+          options={{ tabBarLabel: t('app_qibla') }}
+        />
+        <Tab.Screen
+          name="Duas"
+          component={DuasScreen}
+          options={{ tabBarLabel: t('app_duas') }}
+        />
+        <Tab.Screen
           name="More"
           component={EmptyScreen}
           options={{
@@ -188,16 +199,6 @@ export function AppTabs() {
               </Pressable>
             ),
           }}
-        />
-        <Tab.Screen
-          name="Qibla"
-          component={QiblaScreen}
-          options={{ tabBarLabel: t('app_qibla') }}
-        />
-        <Tab.Screen
-          name="Duas"
-          component={DuasScreen}
-          options={{ tabBarLabel: t('app_duas') }}
         />
         <Tab.Screen
           name="Calendar"
@@ -235,6 +236,7 @@ export function AppTabs() {
         onRequestClose={() => setMoreOpen(false)}
       >
         <Pressable style={styles.overlay} onPress={() => setMoreOpen(false)}>
+          <BlurView intensity={25} tint="dark" style={styles.blurBackground} />
           <Pressable
             style={[
               styles.moreMenu,
@@ -344,6 +346,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     backgroundColor: 'transparent',
+  },
+  blurBackground: {
+    ...StyleSheet.absoluteFillObject,
   },
   moreMenu: {
     alignSelf: 'center',
