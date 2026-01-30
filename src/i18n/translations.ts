@@ -10,6 +10,7 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     app_duas: 'Duas',
     app_zakat: 'Zakat',
     app_tasbih: 'Tasbih',
+    app_holidays: 'Holidays',
     app_live_quran: 'Live Quran',
     app_live_quran_stop: 'Stop Live',
     app_settings: 'Settings',
@@ -22,11 +23,15 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     tabs_zakat: 'Annual giving calculator',
     tabs_tasbih: 'Dhikr counter and goals',
     tabs_settings: 'Preferences and reminders',
+    tabs_holidays: 'Islamic holidays (Hijri dates)',
     daily_wisdom_title: 'Verse & Hadith of the Day',
     daily_wisdom_subtitle: 'A short reminder to begin your day.',
     daily_wisdom_verse: 'Verse',
     daily_wisdom_hadith: 'Hadith',
     daily_wisdom_close: 'Continue',
+    holidays_title: 'Islamic Holidays',
+    holidays_note:
+      'Dates follow the Hijri calendar and may vary by location and moon sighting.',
     settings_prayer_method: 'Prayer Method',
     settings_calculation: 'Calculation',
     settings_madhhab: 'Madhhab',
@@ -201,6 +206,7 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     app_duas: 'Dualar',
     app_zakat: 'Zekat',
     app_tasbih: 'Tesbih',
+    app_holidays: 'Islami G�nler',
     app_live_quran: "Canlı Kur'an",
     app_live_quran_stop: 'Canlıyı durdur',
     app_settings: 'Ayarlar',
@@ -213,11 +219,15 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     tabs_zakat: 'Yıllık zekat hesaplayıcı',
     tabs_tasbih: 'Zikir sayacı ve hedefler',
     tabs_settings: 'Tercihler ve hatırlatmalar',
+    tabs_holidays: 'Islami g�nler (Hicri tarihler)',
     daily_wisdom_title: 'Verse & Hadith of the Day',
     daily_wisdom_subtitle: 'A short reminder to begin your day.',
     daily_wisdom_verse: 'Verse',
     daily_wisdom_hadith: 'Hadith',
     daily_wisdom_close: 'Continue',
+    holidays_title: 'Islami G�nler',
+    holidays_note:
+      'Tarihler Hicri takvime g�re degisir ve b�lgesel g�zleme g�re farklilik g�sterebilir.',
     settings_prayer_method: 'Namaz Yöntemi',
     settings_calculation: 'Hesaplama',
     settings_madhhab: 'Mezhep',
@@ -392,6 +402,7 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     app_duas: 'الأدعية',
     app_zakat: 'الزكاة',
     app_tasbih: 'التسبيح',
+    app_holidays: 'Holidays',
     app_live_quran: 'القرآن المباشر',
     app_live_quran_stop: 'إيقاف المباشر',
     app_settings: 'الإعدادات',
@@ -403,12 +414,16 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     tabs_duas: 'أدعية يومية',
     tabs_zakat: 'حاسبة الزكاة السنوية',
     tabs_tasbih: 'عدّاد الذكر والأهداف',
+    tabs_holidays: 'Islamic holidays (Hijri dates)',
     tabs_settings: 'التفضيلات والتنبيهات',
     daily_wisdom_title: 'Verse & Hadith of the Day',
     daily_wisdom_subtitle: 'A short reminder to begin your day.',
     daily_wisdom_verse: 'Verse',
     daily_wisdom_hadith: 'Hadith',
     daily_wisdom_close: 'Continue',
+    holidays_title: 'Islamic Holidays',
+    holidays_note:
+      'Dates follow the Hijri calendar and may vary by location and moon sighting.',
     settings_prayer_method: 'طريقة الصلاة',
     settings_calculation: 'الحساب',
     settings_madhhab: 'المذهب',
@@ -575,3 +590,8 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_data_error: 'تعذر تحميل بيانات القرآن. حاول مرة أخرى.',
   },
 };
+
+
+
+
+

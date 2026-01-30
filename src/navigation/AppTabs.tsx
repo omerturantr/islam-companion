@@ -22,6 +22,7 @@ import { DuasScreen } from '../screens/DuasScreen';
 import { ZakatScreen } from '../screens/ZakatScreen';
 import { TasbihScreen } from '../screens/TasbihScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { IslamicHolidaysScreen } from '../screens/IslamicHolidaysScreen';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
 import { useLanguage } from '../i18n/LanguageProvider';
@@ -38,6 +39,7 @@ const iconForRoute: Record<string, keyof typeof Ionicons.glyphMap> = {
   Zakat: 'calculator-outline',
   Tasbih: 'infinite-outline',
   Settings: 'settings-outline',
+  Holidays: 'moon-outline',
 };
 
 const LIVE_QURAN_STREAM_URL = 'http://philae.shoutca.st:8222/Quran';
@@ -212,6 +214,15 @@ export function AppTabs() {
           }}
         />
         <Tab.Screen
+          name="Holidays"
+          component={IslamicHolidaysScreen}
+          options={{
+            tabBarLabel: t('app_holidays'),
+            tabBarButton: () => null,
+            tabBarItemStyle: styles.hiddenTabItem,
+          }}
+        />
+        <Tab.Screen
           name="Calendar"
           component={CalendarScreen}
           options={{
@@ -309,6 +320,18 @@ export function AppTabs() {
               <Ionicons name="infinite-outline" color={colors.night} size={22} />
               <Text style={[styles.moreLabel, { color: colors.night }]}>
                 {t('app_tasbih')}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.moreItem}
+              onPress={() => {
+                setMoreOpen(false);
+                navigation.navigate('Holidays');
+              }}
+            >
+              <Ionicons name="moon-outline" color={colors.night} size={22} />
+              <Text style={[styles.moreLabel, { color: colors.night }]}>
+                {t('app_holidays')}
               </Text>
             </Pressable>
           </Pressable>
