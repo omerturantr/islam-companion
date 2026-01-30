@@ -26,7 +26,9 @@ export function IslamicHolidaysScreen() {
             <Text style={styles.holidayName}>
               {holiday.nameTranslations?.[language] ?? holiday.name}
             </Text>
-            <Text style={styles.holidayDate}>{holiday.hijriDate}</Text>
+            <Text style={styles.holidayDate}>
+              {holiday.hijriDateTranslations?.[language] ?? holiday.hijriDate}
+            </Text>
             <Text style={styles.holidaySummary}>
               {holiday.summaryTranslations?.[language] ?? holiday.summary}
             </Text>
