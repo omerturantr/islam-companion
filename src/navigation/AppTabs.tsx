@@ -1,5 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Modal,
+  PanResponder,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,6 +54,7 @@ export function AppTabs() {
   const [liveStreaming, setLiveStreaming] = useState(false);
   const [liveLoading, setLiveLoading] = useState(false);
   const liveSoundRef = useRef<Audio.Sound | null>(null);
+  const swipeStartY = useRef(0);
   const tabBarStyle = useMemo(
     () => ({
       backgroundColor: colors.card,
@@ -66,6 +74,31 @@ export function AppTabs() {
       }
     };
   }, []);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        !moreOpen && gesture.dy < -12 && Math.abs(gesture.dx) < 20,
+      onPanResponderGrant: (_, gesture) => {
+        swipeStartY.current = gesture.moveY;
+      },
+      onPanResponderMove: (_, gesture) => {
+        if (moreOpen) {
+          return;
+        }
+        if (swipeStartY.current - gesture.moveY > 24) {
+          setMoreOpen(true);
+        }
+      },
+      onPanResponderRelease: () => {
+        swipeStartY.current = 0;
+      },
+      onPanResponderTerminate: () => {
+        swipeStartY.current = 0;
+      },
+    }),
+  ).current;
 
   const toggleLiveQuran = async () => {
     if (liveLoading) {
@@ -205,6 +238,7 @@ export function AppTabs() {
         animationType="fade"
         transparent
         visible={moreOpen}
+        presentationStyle="overFullScreen"
         onRequestClose={() => setMoreOpen(false)}
       >
         <Pressable style={styles.overlay} onPress={() => setMoreOpen(false)}>
@@ -274,6 +308,13 @@ export function AppTabs() {
           </Pressable>
         </Pressable>
       </Modal>
+      <View
+        style={styles.swipeHandle}
+        pointerEvents="box-only"
+        {...panResponder.panHandlers}
+      >
+        <View style={styles.swipePill} />
+      </View>
     </View>
   );
 }
@@ -281,6 +322,21 @@ export function AppTabs() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  swipeHandle: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  swipePill: {
+    width: 36,
+    height: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(0, 0, 0, 0.18)',
   },
   hiddenTabItem: {
     display: 'none',

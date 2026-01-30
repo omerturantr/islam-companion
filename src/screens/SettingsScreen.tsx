@@ -103,7 +103,11 @@ export function SettingsScreen() {
   const toggleTheme = () => setMode(isDark ? 'light' : 'dark');
 
   return (
-    <Screen title={t('app_settings')} subtitle={t('tabs_settings')}>
+    <Screen
+      title={t('app_settings')}
+      subtitle={t('tabs_settings')}
+      showSettings={false}
+    >
       <SurfaceCard style={styles.cardSpacing}>
         <Text style={styles.sectionTitle}>{t('settings_prayer_method')}</Text>
         <View style={styles.rowBetween}>

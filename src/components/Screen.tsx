@@ -8,6 +8,9 @@ import {
   Text,
   View,
 } from 'react-native';
+import { Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 import { spacing } from '../theme/spacing';
 import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
@@ -19,6 +22,7 @@ type ScreenProps = {
   scrollable?: boolean;
   headerVisible?: boolean;
   contentPadding?: number;
+  showSettings?: boolean;
 };
 
 export function Screen({
@@ -28,9 +32,11 @@ export function Screen({
   scrollable = true,
   headerVisible = true,
   contentPadding = spacing.lg,
+  showSettings = true,
 }: ScreenProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const navigation = useNavigation<any>();
   const orbOneAnim = useRef(new Animated.Value(0)).current;
   const orbTwoAnim = useRef(new Animated.Value(0)).current;
   const orbThreeAnim = useRef(new Animated.Value(0)).current;
@@ -229,8 +235,28 @@ export function Screen({
       <View style={[styles.content, { paddingHorizontal: contentPadding }]}>
         {headerVisible ? (
           <View style={styles.header}>
-            <Text style={styles.title}>{title}</Text>
-            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+            <View style={styles.headerRow}>
+              <View style={styles.headerText}>
+                <Text style={styles.title}>{title}</Text>
+                {subtitle ? (
+                  <Text style={styles.subtitle}>{subtitle}</Text>
+                ) : null}
+              </View>
+              {showSettings ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Settings"
+                  onPress={() => navigation.navigate('Settings')}
+                  style={styles.settingsButton}
+                >
+                  <Ionicons
+                    name="settings-outline"
+                    size={22}
+                    color={colors.night}
+                  />
+                </Pressable>
+              ) : null}
+            </View>
           </View>
         ) : null}
         {scrollable ? (
@@ -302,6 +328,23 @@ const createStyles = (colors: {
     header: {
       paddingTop: spacing.lg + spacing.sm,
       paddingBottom: spacing.sm,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    headerText: {
+      flex: 1,
+      marginRight: spacing.sm,
+    },
+    settingsButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.oasis,
     },
     title: {
       fontFamily: fonts.displayBold,
