@@ -10,7 +10,7 @@ import { useLanguage } from '../i18n/LanguageProvider';
 
 export function IslamicHolidaysScreen() {
   const { colors } = useTheme();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   return (
@@ -23,9 +23,13 @@ export function IslamicHolidaysScreen() {
       <View>
         {ISLAMIC_HOLIDAYS.map((holiday) => (
           <SurfaceCard key={holiday.id} style={styles.cardSpacing}>
-            <Text style={styles.holidayName}>{holiday.name}</Text>
+            <Text style={styles.holidayName}>
+              {holiday.nameTranslations?.[language] ?? holiday.name}
+            </Text>
             <Text style={styles.holidayDate}>{holiday.hijriDate}</Text>
-            <Text style={styles.holidaySummary}>{holiday.summary}</Text>
+            <Text style={styles.holidaySummary}>
+              {holiday.summaryTranslations?.[language] ?? holiday.summary}
+            </Text>
           </SurfaceCard>
         ))}
       </View>
