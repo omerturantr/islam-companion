@@ -1186,10 +1186,12 @@ export function QuranScreen() {
           <View>
             <Text style={styles.surahTitle}>{activeSurah.nameEnglish}</Text>
             <Text style={styles.surahSubtitle}>
-              {activeSurah.translationEnglish} | {activeSurah.ayahCount} ayahs
+              {activeSurah.translationEnglish} | {activeSurah.ayahCount}{' '}
+              {t('quran_ayahs')}
             </Text>
             <Text style={styles.surahMeta}>
-              {activeSurah.revelationType} | Reciter: {reciter.label} | {playbackRate}x
+              {activeSurah.revelationType} | {t('quran_reciter')}:{' '}
+              {reciter.label} | {playbackRate}x
             </Text>
           </View>
         ) : (
@@ -1252,7 +1254,8 @@ export function QuranScreen() {
               <View key={bookmark.id} style={styles.bookmarkRow}>
                 <View style={styles.bookmarkInfo}>
                   <Text style={styles.bookmarkTitle}>
-                    {bookmark.surahNameEnglish || `Surah ${bookmark.surahId}`}
+                    {bookmark.surahNameEnglish ||
+                      `${t('quran_surah')} ${bookmark.surahId}`}
                   </Text>
                   {bookmark.surahNameArabic ? (
                     <Text style={styles.bookmarkArabic}>
@@ -1295,8 +1298,9 @@ export function QuranScreen() {
               <View key={bookmark.id} style={styles.bookmarkRow}>
                 <View style={styles.bookmarkInfo}>
                   <Text style={styles.bookmarkTitle}>
-                    {bookmark.surahNameEnglish || `Surah ${bookmark.surahId}`}{' '}
-                    • Ayah {bookmark.ayahNumberInSurah}
+                    {bookmark.surahNameEnglish ||
+                      `${t('quran_surah')} ${bookmark.surahId}`}{' '}
+                    • {t('quran_ayah')} {bookmark.ayahNumberInSurah}
                   </Text>
                   {bookmark.surahNameArabic ? (
                     <Text style={styles.bookmarkArabic}>
@@ -1347,7 +1351,7 @@ export function QuranScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.sectionSpacing}>
-        <Text style={styles.cardEyebrow}>Choose Surah</Text>
+        <Text style={styles.cardEyebrow}>{t('quran_choose_surah')}</Text>
         <Text style={styles.selectorTitle}>{t('quran_search')}</Text>
         <TextInput
           value={surahQuery}
@@ -1449,8 +1453,9 @@ export function QuranScreen() {
               >
                 <View style={styles.searchResultInfo}>
                   <Text style={styles.searchResultTitle}>
-                    {result.surahNameEnglish || `Surah ${result.surahId}`} • Ayah{' '}
-                    {result.ayahNumberInSurah}
+                    {result.surahNameEnglish ||
+                      `${t('quran_surah')} ${result.surahId}`}{' '}
+                    • {t('quran_ayah')} {result.ayahNumberInSurah}
                   </Text>
                   {result.surahNameArabic ? (
                     <Text style={styles.searchResultArabic}>
@@ -1519,7 +1524,7 @@ export function QuranScreen() {
         </View>
         <Text style={[styles.repeatStatus, repeatActive && styles.repeatStatusActive]}>
           {repeatActive
-            ? `${t('quran_repeat_active')} ${repeatStart} to ${repeatEnd}`
+            ? `${t('quran_repeat_active')} ${repeatStart} ${t('quran_to')} ${repeatEnd}`
             : t('quran_repeat_status')}
         </Text>
         <Text style={styles.selectorTitle}>{t('quran_sleep_timer')}</Text>
@@ -1537,7 +1542,7 @@ export function QuranScreen() {
                 sleepTimerMinutes === null && styles.activeText,
               ]}
             >
-              Off
+              {t('quran_sleep_off')}
             </Text>
           </TouchableOpacity>
           {SLEEP_TIMER_OPTIONS.map((minutes) => (
@@ -1555,7 +1560,7 @@ export function QuranScreen() {
                   sleepTimerMinutes === minutes && styles.activeText,
                 ]}
               >
-                {minutes} min
+                {minutes} {t('quran_minutes_short')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -1674,8 +1679,9 @@ export function QuranScreen() {
               {selectedVerse ? (
                 <View>
                   <Text style={styles.noteTitle}>
-                    {selectedVerse.surahNameEnglish || `Surah ${selectedVerse.surahId}`}
-                    {' • '}Ayah {selectedVerse.ayahNumberInSurah}
+                    {selectedVerse.surahNameEnglish ||
+                      `${t('quran_surah')} ${selectedVerse.surahId}`}
+                    {' • '}{t('quran_ayah')} {selectedVerse.ayahNumberInSurah}
                   </Text>
                   {selectedVerse.surahNameArabic ? (
                     <Text style={styles.noteArabic}>

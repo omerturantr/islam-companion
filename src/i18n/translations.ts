@@ -200,6 +200,12 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_mushaf_page: 'Mushaf page',
     quran_options: 'Options',
     quran_reader_settings: 'Reader Settings',
+    quran_choose_surah: 'Choose Surah',
+    quran_ayah: 'Ayah',
+    quran_ayahs: 'ayahs',
+    quran_to: 'to',
+    quran_sleep_off: 'Off',
+    quran_minutes_short: 'min',
   },
   tr: {
     app_prayer_times: 'Namaz Vakitleri',
@@ -400,6 +406,12 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_mushaf_page: 'Mushaf sayfası',
     quran_options: 'Seçenekler',
     quran_reader_settings: 'Okuyucu Ayarları',
+    quran_choose_surah: 'Sure Seç',
+    quran_ayah: 'Ayet',
+    quran_ayahs: 'ayet',
+    quran_to: 'ile',
+    quran_sleep_off: 'Kapalı',
+    quran_minutes_short: 'dk',
   },
   ar: {
     app_prayer_times: 'مواقيت الصلاة',
@@ -600,8 +612,15 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_mushaf_page: 'صفحة المصحف',
     quran_options: 'خيارات',
     quran_reader_settings: 'إعدادات القارئ',
+    quran_choose_surah: 'اختر سورة',
+    quran_ayah: 'آية',
+    quran_ayahs: 'آيات',
+    quran_to: 'إلى',
+    quran_sleep_off: 'إيقاف',
+    quran_minutes_short: 'د',
   },
 };
+
 
 
 
