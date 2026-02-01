@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -30,6 +31,7 @@ import { fonts } from '../theme/typography';
 import { useTheme } from '../theme/theme';
 import { formatDate, formatTime } from '../utils/format';
 import { useLanguage } from '../i18n/LanguageProvider';
+import { prayerCollections } from '../data/adhkarCollections';
 
 const NOTIFICATION_ADVANCE_MINUTES = 15;
 const SCHEDULE_DAYS = 7;
@@ -413,6 +415,24 @@ export function PrayerTimesScreen() {
           ))}
         </View>
       </SurfaceCard>
+
+      {prayerCollections.map((category) => (
+        <SurfaceCard key={category.id} style={styles.cardSpacing}>
+          <Text style={styles.sectionTitle}>{category.title}</Text>
+          <View style={styles.linkList}>
+            {category.items.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.linkRow}
+                onPress={() => Linking.openURL(item.url)}
+              >
+                <Text style={styles.linkTitle}>{item.title}</Text>
+                <Text style={styles.linkAction}>{t('common_open')}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </SurfaceCard>
+      ))}
     </Screen>
   );
 }
@@ -430,10 +450,10 @@ const createStyles = (colors: {
     cardSpacing: {
       marginBottom: spacing.md,
     },
-  cardEyebrow: {
-    fontFamily: fonts.bodyMedium,
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
+    cardEyebrow: {
+      fontFamily: fonts.bodyMedium,
+      textTransform: 'uppercase',
+      letterSpacing: 1.2,
     fontSize: 12,
     color: colors.muted,
     marginBottom: spacing.sm,
@@ -549,6 +569,38 @@ const createStyles = (colors: {
     },
     timesList: {
       marginTop: spacing.sm,
+    },
+    sectionTitle: {
+      fontFamily: fonts.displayBold,
+      fontSize: 20,
+      color: colors.night,
+      marginBottom: spacing.sm,
+    },
+    linkList: {
+      gap: spacing.sm,
+    },
+    linkRow: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.card,
+      borderRadius: 14,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    linkTitle: {
+      fontFamily: fonts.bodyMedium,
+      fontSize: 14,
+      color: colors.night,
+      flex: 1,
+      marginRight: spacing.sm,
+    },
+    linkAction: {
+      fontFamily: fonts.bodyMedium,
+      fontSize: 12,
+      color: colors.pine,
     },
     timeRow: {
       flexDirection: 'row',
