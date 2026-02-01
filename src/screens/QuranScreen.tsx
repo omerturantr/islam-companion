@@ -206,7 +206,6 @@ export function QuranScreen() {
   const [verseSearchError, setVerseSearchError] = useState<string | null>(null);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
-  const [chromeVisible, setChromeVisible] = useState(false);
   const [selectedVerse, setSelectedVerse] = useState<{
     surahId: number;
     surahNameEnglish: string;
@@ -228,7 +227,6 @@ export function QuranScreen() {
   const pageListRef = useRef<FlatList<number> | null>(null);
   const suppressPressRef = useRef(0);
   const sleepTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const chromeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRequestRef = useRef(0);
   const pageLoadingRef = useRef<Set<number>>(new Set());
   const surahCacheRef = useRef<Map<number, Surah>>(new Map());
@@ -468,10 +466,8 @@ export function QuranScreen() {
   }, []);
 
   useEffect(() => {
-    navigation.setOptions({
-      tabBarStyle: chromeVisible ? undefined : { opacity: 0, pointerEvents: 'none' },
-    });
-  }, [chromeVisible, navigation]);
+    navigation.setOptions({ tabBarStyle: undefined });
+  }, [navigation]);
 
   useEffect(() => {
     let isMounted = true;
@@ -773,24 +769,7 @@ export function QuranScreen() {
     };
   }, [sleepTimerMinutes]);
 
-  useEffect(() => {
-    return () => {
-      if (chromeTimerRef.current) {
-        clearTimeout(chromeTimerRef.current);
-        chromeTimerRef.current = null;
-      }
-    };
-  }, []);
-
-  const showChrome = () => {
-    setChromeVisible(true);
-    if (chromeTimerRef.current) {
-      clearTimeout(chromeTimerRef.current);
-    }
-    chromeTimerRef.current = setTimeout(() => {
-      setChromeVisible(false);
-    }, 2500);
-  };
+  const showChrome = () => {};
 
   const jumpToPage = (pageNumber: number) => {
     if (pages.length === 0) {
@@ -993,14 +972,12 @@ export function QuranScreen() {
       suppressPressRef.current = 0;
       return;
     }
-    showChrome();
     setLastTappedAyah(ayah);
     playAyah(ayah.number);
   };
 
   const handleAyahLongPress = (ayah: PageAyah) => {
     suppressPressRef.current = Date.now();
-    showChrome();
     setLastTappedAyah(ayah);
     openVerseModal(ayah);
   };
@@ -1230,7 +1207,7 @@ export function QuranScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.sectionSpacing}>
-        <Text style={styles.cardEyebrow}>Bookmarks</Text>
+        <Text style={styles.cardEyebrow}>{t('quran_bookmarks')}</Text>
         <TouchableOpacity
           style={[
             styles.bookmarkButton,
@@ -1245,7 +1222,7 @@ export function QuranScreen() {
               !canBookmark && styles.bookmarkButtonTextDisabled,
             ]}
           >
-            Bookmark {currentPageLabel}
+            {t('quran_bookmark_page')} {currentPageLabel}
           </Text>
         </TouchableOpacity>
         {orderedBookmarks.length > 0 ? (
@@ -1291,7 +1268,7 @@ export function QuranScreen() {
       </SurfaceCard>
 
       <SurfaceCard style={styles.sectionSpacing}>
-        <Text style={styles.cardEyebrow}>Verse Bookmarks</Text>
+        <Text style={styles.cardEyebrow}>{t('quran_verse_bookmarks')}</Text>
         {orderedVerseBookmarks.length > 0 ? (
           <View style={styles.bookmarkList}>
             {orderedVerseBookmarks.map((bookmark) => (
@@ -1584,13 +1561,7 @@ export function QuranScreen() {
       contentPadding={0}
     >
         <View style={styles.readerLayout}>
-        <View
-          style={[
-            styles.readerHeader,
-            !chromeVisible && styles.readerHeaderHidden,
-          ]}
-          pointerEvents={chromeVisible ? 'auto' : 'none'}
-        >
+          <View style={styles.readerHeader}>
           <View>
             <Text style={styles.readerTitle}>
               {activeSurah ? activeSurah.nameEnglish : t('app_quran')}
@@ -1600,7 +1571,6 @@ export function QuranScreen() {
           <TouchableOpacity
             style={styles.readerAction}
             onPress={() => {
-              showChrome();
               setControlsVisible(true);
             }}
           >
@@ -1787,9 +1757,6 @@ const createStyles = (
     paddingHorizontal: spacing.sm,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xs,
-  },
-  readerHeaderHidden: {
-    opacity: 0,
   },
   readerTitle: {
     fontFamily: fonts.displayBold,

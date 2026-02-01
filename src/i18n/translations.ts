@@ -200,6 +200,9 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_mushaf_page: 'Mushaf page',
     quran_options: 'Options',
     quran_reader_settings: 'Reader Settings',
+    quran_bookmarks: 'Bookmarks',
+    quran_bookmark_page: 'Bookmark',
+    quran_verse_bookmarks: 'Verse Bookmarks',
     quran_choose_surah: 'Choose Surah',
     quran_ayah: 'Ayah',
     quran_ayahs: 'ayahs',
@@ -406,6 +409,9 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_mushaf_page: 'Mushaf sayfası',
     quran_options: 'Seçenekler',
     quran_reader_settings: 'Okuyucu Ayarları',
+    quran_bookmarks: 'Yer İşaretleri',
+    quran_bookmark_page: 'Yer işareti',
+    quran_verse_bookmarks: 'Ayet Yer İşaretleri',
     quran_choose_surah: 'Sure Seç',
     quran_ayah: 'Ayet',
     quran_ayahs: 'ayet',
@@ -612,6 +618,9 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_mushaf_page: 'صفحة المصحف',
     quran_options: 'خيارات',
     quran_reader_settings: 'إعدادات القارئ',
+    quran_bookmarks: 'العلامات المرجعية',
+    quran_bookmark_page: 'إضافة علامة',
+    quran_verse_bookmarks: 'علامات الآيات',
     quran_choose_surah: 'اختر سورة',
     quran_ayah: 'آية',
     quran_ayahs: 'آيات',
@@ -620,6 +629,7 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_minutes_short: 'د',
   },
 };
+
 
 
 
