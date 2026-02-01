@@ -404,7 +404,7 @@ export function QuranScreen() {
   const currentPage = pageData[currentPageNumber];
   const pageIndicatorText =
     pages.length > 0
-      ? `Page ${currentPageNumber} of ${pages.length}`
+      ? `${t('quran_page')} ${currentPageNumber} / ${pages.length}`
       : t('quran_select_surah');
   const pageWidth = Math.max(1, width);
   const pageTypography = useMemo(() => {
@@ -417,7 +417,7 @@ export function QuranScreen() {
     const fontSize = Math.max(18, Math.min(28, Math.round(lineHeight * 0.54)));
     return { fontSize, lineHeight };
   }, [pageBodyHeight]);
-  const currentPageLabel = `Mushaf page ${currentPageNumber}`;
+  const currentPageLabel = `${t('quran_mushaf_page')} ${currentPageNumber}`;
   const lastReadSurah = useMemo(() => {
     if (!lastRead) {
       return null;
@@ -426,8 +426,8 @@ export function QuranScreen() {
   }, [lastRead, surahs]);
   const lastReadPageLabel = lastRead
     ? lastRead.pageNumber
-      ? `Mushaf page ${lastRead.pageNumber}`
-      : `Page ${lastRead.pageIndex + 1}`
+      ? `${t('quran_mushaf_page')} ${lastRead.pageNumber}`
+      : `${t('quran_page')} ${lastRead.pageIndex + 1}`
     : '';
   const canResumeLastRead = Boolean(
     lastRead && lastRead.pageNumber && lastRead.pageNumber - 1 !== pageIndex,
@@ -1588,7 +1588,7 @@ export function QuranScreen() {
         >
           <View>
             <Text style={styles.readerTitle}>
-              {activeSurah ? activeSurah.nameEnglish : 'Quran'}
+              {activeSurah ? activeSurah.nameEnglish : t('app_quran')}
             </Text>
             <Text style={styles.readerSubtitle}>{pageIndicatorText}</Text>
           </View>
@@ -1599,7 +1599,7 @@ export function QuranScreen() {
               setControlsVisible(true);
             }}
           >
-            <Text style={styles.readerActionText}>Options</Text>
+            <Text style={styles.readerActionText}>{t('quran_options')}</Text>
           </TouchableOpacity>
         </View>
         <FlatList
@@ -1630,7 +1630,7 @@ export function QuranScreen() {
               </View>
             ) : (
               <View style={styles.emptyState}>
-                <Text style={styles.emptyText}>Select a surah to begin.</Text>
+                <Text style={styles.emptyText}>{t('quran_select_surah')}</Text>
               </View>
             )
           }
@@ -1642,7 +1642,7 @@ export function QuranScreen() {
         >
           <SafeAreaView style={styles.modalContainer}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Reader Settings</Text>
+              <Text style={styles.modalTitle}>{t('quran_reader_settings')}</Text>
               <TouchableOpacity onPress={() => setControlsVisible(false)}>
                 <Text style={styles.modalClose}>{t('quran_done')}</Text>
               </TouchableOpacity>

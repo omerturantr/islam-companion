@@ -196,6 +196,10 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_search_placeholder_arabic: 'Search Arabic text',
     quran_search_error: 'Unable to search verses right now.',
     quran_data_error: 'Unable to load Quran data. Please try again.',
+    quran_page: 'Page',
+    quran_mushaf_page: 'Mushaf page',
+    quran_options: 'Options',
+    quran_reader_settings: 'Reader Settings',
   },
   tr: {
     app_prayer_times: 'Namaz Vakitleri',
@@ -392,6 +396,10 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_search_placeholder_arabic: 'Arapça metin ara',
     quran_search_error: 'Ayet araması yapılamıyor.',
     quran_data_error: 'Kuran verisi yüklenemedi. Tekrar dene.',
+    quran_page: 'Sayfa',
+    quran_mushaf_page: 'Mushaf sayfası',
+    quran_options: 'Seçenekler',
+    quran_reader_settings: 'Okuyucu Ayarları',
   },
   ar: {
     app_prayer_times: 'مواقيت الصلاة',
@@ -588,8 +596,14 @@ export const translations: Record<LanguageCode, Record<string, string>> = {
     quran_search_placeholder_arabic: 'ابحث في النص العربي',
     quran_search_error: 'تعذر البحث في الآيات الآن.',
     quran_data_error: 'تعذر تحميل بيانات القرآن. حاول مرة أخرى.',
+    quran_page: 'صفحة',
+    quran_mushaf_page: 'صفحة المصحف',
+    quran_options: 'خيارات',
+    quran_reader_settings: 'إعدادات القارئ',
   },
 };
+
+
 
 
 
