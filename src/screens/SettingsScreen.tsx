@@ -236,6 +236,15 @@ export function SettingsScreen() {
             value={language === 'ur'}
           />
         </View>
+        <View style={styles.rowBetween}>
+          <Text style={styles.labelText}>{t('common_french')}</Text>
+          <Switch
+            trackColor={{ false: colors.border, true: colors.oasis }}
+            thumbColor={language === 'fr' ? colors.pine : colors.parchment}
+            onValueChange={() => setLanguage('fr')}
+            value={language === 'fr'}
+          />
+        </View>
       </SurfaceCard>
     </Screen>
   );

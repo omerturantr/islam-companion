@@ -11,6 +11,7 @@ const normalizeLanguage = (value?: string | null): LanguageCode => {
   if (code.startsWith('tr')) return 'tr';
   if (code.startsWith('ar')) return 'ar';
   if (code.startsWith('ur')) return 'ur';
+  if (code.startsWith('fr')) return 'fr';
   return 'en';
 };
 
