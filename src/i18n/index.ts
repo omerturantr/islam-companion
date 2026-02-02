@@ -10,6 +10,7 @@ const normalizeLanguage = (value?: string | null): LanguageCode => {
   const code = value.toLowerCase();
   if (code.startsWith('tr')) return 'tr';
   if (code.startsWith('ar')) return 'ar';
+  if (code.startsWith('ur')) return 'ur';
   return 'en';
 };
 

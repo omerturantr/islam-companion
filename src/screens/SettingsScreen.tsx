@@ -227,6 +227,15 @@ export function SettingsScreen() {
             value={language === 'ar'}
           />
         </View>
+        <View style={styles.rowBetween}>
+          <Text style={styles.labelText}>{t('common_urdu')}</Text>
+          <Switch
+            trackColor={{ false: colors.border, true: colors.oasis }}
+            thumbColor={language === 'ur' ? colors.pine : colors.parchment}
+            onValueChange={() => setLanguage('ur')}
+            value={language === 'ur'}
+          />
+        </View>
       </SurfaceCard>
     </Screen>
   );
